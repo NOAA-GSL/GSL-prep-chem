@@ -116,103 +116,105 @@ afternoon_run=18
 
 # Make a temporary directory for individual observations:
 
-    if [ -e parts ] ; then
-	rm -rf parts
-    fi
+if [ -e parts ] ; then
+    rm -rf parts
+fi
 
-    mkdir parts
-    cd parts
+mkdir parts
+cd parts
 
 ########################################################################
 
-    echo "Start processing, S-NPP FRP files"
+echo "Start processing, S-NPP FRP files"
 #    cd $path_sat
-
-    if [ ${hh} -eq ${evening_run} ]; then
-	for file in $VIIRS_NPP_DIR/AF_v1r1_npp_s${date0}*.txt
-	do
-	    lines=$( cat "$file" | wc -l )
-	    if [[ "$lines" -lt 2 ]] ; then
-		echo "No data in $file"
-	    elif ( echo "$file" | "$GREP" -E '\*' ) ; then
-		echo "No npp files for this date in $VIIRS_NPP_DIR"
-		exit 99
-	    else
-		head "$file"
-		hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
-		echo ${file}
-		${r_npp} ${file} ./${yy}${juld0}${hourv}_npp_3km.txt  ${igbp}
-		if [ -e fort.22 ] ; then
-		    echo "ABORT: did not open output file in $r_npp"
-		    exit 9
-		fi
+if [ ${hh} -eq ${evening_run} ]; then
+    for file in $VIIRS_NPP_DIR/AF_v1r1_npp_s${date0}*.txt
+    do
+	lines=$( cat "$file" | wc -l )
+	if [[ "$lines" -lt 2 ]] ; then
+	    echo "No data in $file"
+	elif ( echo "$file" | "$GREP" -E '\*' ) ; then
+	    echo "No npp files for this date in $VIIRS_NPP_DIR"
+	    exit 99
+	else
+	    head "$file"
+	    hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
+	    echo ${file}
+	    ${r_npp} ${file} ./${yy}${juld0}${hourv}_npp_3km.txt  ${igbp}
+	    if [ -e fort.22 ] ; then
+		echo "ABORT: did not open output file in $r_npp"
+		exit 9
 	    fi
-	done
-    fi
+	fi
+    done
+fi
 
 ########################################################################
 
-    echo "NOAA-20 (JPSS-1) data"
-    if [ ${hh} -eq ${evening_run} ]; then
-	for file in $VIIRS_J01_DIR/AF_v1r1_j01_s${date0}*.txt
-	do
-	    lines=$( cat "$file" | wc -l )
-	    if [[ "$lines" -lt 2 ]] ; then
-		echo "No data in $file"
-	    elif ( echo "$file" | "$GREP" -E '\*' ) ; then
-		echo "No npp files for this date in $VIIRS_J01_DIR"
-		exit 99
-	    else
-		head "$file"
-		hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
-		echo ${file}
-		${r_j01} ${file} ./${yy}${juld0}${hourv}_j01_3km.txt  ${igbp}
-		if [ -e fort.22 ] ; then
-		    echo "ABORT: did not open output file in $r_j01"
-		    exit 9
-		fi
+echo "NOAA-20 (JPSS-1) data"
+if [ ${hh} -eq ${evening_run} ]; then
+    for file in $VIIRS_J01_DIR/AF_v1r1_j01_s${date0}*.txt
+    do
+	lines=$( cat "$file" | wc -l )
+	if [[ "$lines" -lt 2 ]] ; then
+	    echo "No data in $file"
+	elif ( echo "$file" | "$GREP" -E '\*' ) ; then
+	    echo "No npp files for this date in $VIIRS_J01_DIR"
+	    exit 99
+	else
+	    head "$file"
+	    hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
+	    echo ${file}
+	    ${r_j01} ${file} ./${yy}${juld0}${hourv}_j01_3km.txt  ${igbp}
+	    if [ -e fort.22 ] ; then
+		echo "ABORT: did not open output file in $r_j01"
+		exit 9
 	    fi
-	done
-    fi
+	fi
+    done
+fi
 
 ########################################################################
 
-    echo "MODIS (Aqua and Terra) data"
-    if [ ${hh} -eq ${evening_run} ]; then
-	modis_file=$MODIS_FIRE_DIR/MODIS_C6_Global_MCD14DL_NRT_${yy}${juld0}.txt
-	if [ -s "$modis_file" ] ; then
-            ${r_modis} "$modis_file" ${igbp} 00 24
-            echo mv *mod_3km.txt .
+echo "MODIS (Aqua and Terra) data"
+if [ ${hh} -eq ${evening_run} ]; then
+    modis_file=$MODIS_FIRE_DIR/MODIS_C6_Global_MCD14DL_NRT_${yy}${juld0}.txt
+    if [ -s "$modis_file" ] ; then
+        ${r_modis} "$modis_file" ${igbp} 00 24
+	if [ -e fort.22 ] ; then
+	    echo "ABORT: did not open output file in $r_modis"
+	    exit 9
 	fi
     fi
+fi
 
 ########################################################################
 
-    cd ..
-    if [ -e whole ] ; then
-	rm -rf whole
-    fi
-    mkdir whole
-    cd whole
+cd ..
+if [ -e whole ] ; then
+    rm -rf whole
+fi
+mkdir whole
+cd whole
 
-    cat $( ls -1 ../parts/*txt | sort ) > $yy$juld${hh}_daily3km.txt
+cat $( ls -1 ../parts/*txt | sort ) > $yy$juld${hh}_daily3km.txt
 
-    ${r_frp}  $yy$juld${hh}_daily3km.txt  $yy$juld${hh}_frp3km.txt
+${r_frp}  $yy$juld${hh}_daily3km.txt  $yy$juld${hh}_frp3km.txt
 
-    ${r_bbm}  $yy$juld${hh}_frp3km.txt f$yy$juld${hh}_bbm3km_v3.txt   ${igbp}  ${biom}
+${r_bbm}  $yy$juld${hh}_frp3km.txt f$yy$juld${hh}_bbm3km_v3.txt   ${igbp}  ${biom}
 
 ########################################################################
 
-    cd ..
-    if [ -e bin ] ; then
-	rm -rf bin
-    fi
-    mkdir bin
-    cd bin
+cd ..
+if [ -e bin ] ; then
+    rm -rf bin
+fi
+mkdir bin
+cd bin
 
-    cp -fp ../whole/f$yy$juld${hh}_bbm3km_v3.txt .
-    cp -fp "$prep_chem_sources_inp" prep_chem_sources.inp
-    "$r_prep_chem"
+cp -fp ../whole/f$yy$juld${hh}_bbm3km_v3.txt .
+cp -fp "$prep_chem_sources_inp" prep_chem_sources.inp
+"$r_prep_chem"
 
 ########################################################################
 
