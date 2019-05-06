@@ -8,7 +8,7 @@ proc_NPP_FRP_RAP_v3.exe
 
 # These four will be replaced by the caller:
 FC=ifort
-FFLAGS=
+FFLAGS=-g -traceback
 LDFLAGS=
 LIBS=
 
@@ -19,5 +19,5 @@ clean:
 
 .SUFFIXES: .f90 .exe
 
-%.exe : %.f90
+%.exe : %.f90 Makefile
 	$(FC) $(FFLAGS) $*.f90 -o $*.exe $(LDFLAGS) $(LIBS)

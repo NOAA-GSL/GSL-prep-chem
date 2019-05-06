@@ -7,7 +7,7 @@ proc_NPP_FRP_HRRR_v3.exe
 
 # These four will be replaced by the caller:
 FC=ifort
-FFLAGS=
+FFLAGS=-traceback -g
 LDFLAGS=
 LIBS=
 
@@ -18,5 +18,5 @@ clean:
 
 .SUFFIXES: .f90 .exe
 
-%.exe : %.f90
+%.exe : %.f90 Makefile
 	$(FC) $(FFLAGS) $*.f90 -o $*.exe $(LDFLAGS) $(LIBS)
