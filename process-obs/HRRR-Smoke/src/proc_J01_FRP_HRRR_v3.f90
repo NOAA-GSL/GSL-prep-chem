@@ -65,7 +65,7 @@ IMPLICIT NONE
    REAL    :: delta    ! The model resolution in degrees
    REAL    :: lon, lat
    REAL(4) :: dday
-   LOGICAL, PARAMETER :: dbg=.false.
+   LOGICAL, PARAMETER :: dbg=.true.
 
 ! Input VIIRS data
    CALL GETARG(1,input_viirs)
@@ -108,15 +108,18 @@ IMPLICIT NONE
 !!! Write a subroutine for reading all the VIIRS text files, so we don't read the LULC map for each file!!
 line_loop: DO
               READ(21, *, iostat=stat, end=999) yy,mm,dd,hour,minute,lon_vi,lat_vi,mask,confi,t13,frp_v,posy,posx,bowtie
-              IF (stat /= 0) EXIT
+              IF (stat /= 0) then
+                 print *,'no more lines'
+                 exit
+              end IF
               !IF (bowtie==1) cycle      ! duplicate FRP detections, this needs to be improved in future
 
               IF ((frp_v<1.) .OR. (frp_v>10000.)) cycle    ! I suggest we put low/high end limits on the FRP data to remove the false detections or bad data
 
    check_loc: IF ( (lat_vi .GT. 20.0) .AND. (lat_vi .LT. 55.0) .AND. (lon_vi .GT. -180.0) .AND. (lon_vi .LT. -30.0) ) THEN
-
+              print *,'valid data: ',yy,mm,dd,hour,minute,lon_vi,lat_vi,mask,confi,t13,frp_v,posy,posx,bowtie
     check_lulc:  IF (read_lulc==1) THEN
-                    ! Input MAP of Land Use and Land cover
+                    ! Input MAP of Land Use and Land cover 
                     OPEN(23, file=lulcmap, FORM='UNFORMATTED', ACCESS="STREAM", IOSTAT=stat)
 
                     ! Allocate MAP file
@@ -133,6 +136,7 @@ line_loop: DO
 
                     ! Output file to write the processed data
                     OPEN(22,file=trim(output), status='replace', IOSTAT=stat, ACTION='write')
+
                  ENDIF     check_lulc
 
                  dday = REAL(dd)
@@ -196,7 +200,8 @@ jday:            IF ( MOD(yy,4)==0 )  THEN      ! leap year
                  ENDIF  jday
 
                  IF (yy<2010) THEN
-                    STOP 'wrong year!!!'
+                    write(0,*) 'wrong year!!!'
+                    STOP 3
                  ENDIF
 
                  dyear= yy - 2010
@@ -343,7 +348,7 @@ jday:            IF ( MOD(yy,4)==0 )  THEN      ! leap year
 
             IF (dbg) THEN
                WRITE(*,*), 'lat_vi,lon_vi ',lat_vi,lon_vi
-               WRITE(*,*), 'x,y,ac_frp,ac_fsize,ac_day ',x,y,ac_frp,ac_fsize,ac_day
+               WRITE(*,*), 'x,y,ac_frp,ac_fsize,ac_day ',x,y,ac_frp(x,y),ac_fsize(x,y),ac_day(x,y)
             ENDIF
 
        ENDIF  check_loc
@@ -362,6 +367,7 @@ loop_lon:   DO x=1,a_cols
                   lon = -180.0 + (x-1)*delta
                   lat =   90.0 - (y-1)*delta
                   WRITE(22,700) lon, lat, ac_frp(x,y), ac_fsize(x,y), ac_parea(x,y), ac_day(x,y), cont(x,y)     !, julday
+                  write(0,*) '****OUTPUT TO: ',trim(output)
               ENDIF
             ENDDO    loop_lon
            ENDDO    loop_lat
