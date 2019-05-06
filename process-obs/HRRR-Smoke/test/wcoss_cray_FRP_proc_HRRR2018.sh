@@ -32,59 +32,67 @@ AWK="/bin/gawk --posix"
 SED=/bin/sed
 DATE=/bin/date
 
-base=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/ap-fc/Ravan/HRRR_smoke
+base_data=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/ap-fc/Ravan/HRRR_smoke
+path_work="/gpfs/dell2/stmp/$USER"
+codes=$( cd $( dirname "$0" ) ; pwd -P )/../src/
 
-if [ ! test -d "$base" ] ; then
-    echo "$base: missing or not a directory" 1>&2
+if [ ! test -d "$base_data" ] ; then
+    echo "$base_data: missing or not a directory" 1>&2
     exit 1
 fi
 
 # LOCAL TO FRP CODE AND TEMP AND OUTPUT FOLDERS
-path_stat="$base/Fire_emiss3.0/LU_data/"		#$base/Fire_emiss3.0/Work_dir/Debugging/Code2.1
+path_stat="$base_data/Fire_emiss3.0/LU_data/"		#$base_data/Fire_emiss3.0/Work_dir/Debugging/Code2.1
 
-path_work="$base/BBemiss_pre4.0/"
-temp=${path_work}"Work_dir/Temp/"
+workdir="${path_work}/Work_dir/Temp.$$.$RANDOM/"
+mkdir -p "$workdir"
+cd "$workdir"
+
+VIIRS_NPP_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/dcom_af_viirs/us007003/af_viirs
+VIIRS_J01_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/dcom_af_viirs/us007003/af_viirs
+MODIS_FIRE_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global
 
 # INPUT FIRE FOLDERS TO MODIS abd VIIRS
-#path_sat="$base/BBemiss_pre4.0/Input_data/2018/"
-path_sat="$base/BBemiss_pre4.0/Input_data/2018/"
-path_proc="$base/BBemiss_pre4.0/Output/HRRR-Smoke/"
+#path_sat="$base_data/BBemiss_pre4.0/Input_data/2018/"
+path_sat="$base_data/BBemiss_pre4.0/Input_data/2018/"
+path_proc="$base_data/BBemiss_pre4.0/Output/HRRR-Smoke/"
 
 # LANDUSE DATA for HRRR-Smoke
 igbp=${path_stat}"MCD12_2013_NA_3KM.bin"
 biom=${path_stat}"BIOME_NA_3km.bin"
 
 # LOCAL TO CODES 
-codes=${path_work}"HRRR-Smoke_programs/"
 r_npp=${codes}"proc_NPP_FRP_HRRR_v3.exe"
 r_j01=${codes}"proc_J01_FRP_HRRR_v3.exe"
 r_modis=${codes}"proc_MODIS_FRP_HRRR_v3.exe"
 r_frp=${codes}"merge_FRP_HRRR_v3.exe"
-r_bbm=${codes}"FRE_BBM_HRRR_v3.exe"
+r_bbm=${codes}"FRE_BBM_HRRR_v4.exe"
 
 ###################################################################
 ############## DO NOT CHANGE FROM HERE  ###########################
 ###################################################################
 
 # Start of forecast, number of days
-fcst_start=2018101800       # Start of forecast in 'YYYYMMDDHH' format
+fcst_start=2019050600       # Start of forecast in 'YYYYMMDDHH' format
+fcst_start_cannonical="${fcst_start:0:4}-${fcst_start:4:2}-${fcst_start:6:2} ${fcst_start:8:2}:00:00 +0000"
 
-yy=$(echo ${fcst_start} | cut -c1-4)
-mm=$(echo ${fcst_start} | cut -c5-6)
-dd=$(echo ${fcst_start} | cut -c7-8)
-hh=$(echo ${fcst_start} | cut -c9-10)
-juld=$(date -d "${yy}${mm}${dd}" +%j)
+time_start="${time_start:-$fcst_start}"
+time_start_cannonical="${time_start:0:4}-${time_start:4:2}-${time_start:6:2} ${time_start:8:2}:00:00 +0000"
+
+juld=$(date -d "$fcst_start_cannonical" +%j)
 juld0=$[$juld-1]
-date0=$(date -d "`date +%Y`-01-01 +$(( ${juld0} - 1 ))days" +%Y%m%d)
+date0=$(date -d "$fcst_start_cannonical" +%Y%m%d)
+hh=$(date -d "$fcst_start_cannonical" +%H)
+yy=$(date -d "$fcst_start_cannonical" +%Y)
 #ndays=1
 
 echo $date0
 
-YYYYMMDDHH=`${DATE} +"%Y%m%d%H" -d "${time_start}"`
-YYYYMMDD=`${DATE} +"%Y%m%d" -d "${time_start}"`
-OLD_DAY=`${DATE} +"%Y%m%d" -d "${time_start} 1 day ago"`
-OLD_JULIAN=`${DATE} +"%Y%j" -d "${time_start} 1 day ago"`
-#HH=`${DATE} +"%H" -d "${time_start}"`
+YYYYMMDDHH=`${DATE} +"%Y%m%d%H" -d "${time_start_cannonical}"`
+YYYYMMDD=`${DATE} +"%Y%m%d" -d "${time_start_cannonical}"`
+OLD_DAY=`${DATE} +"%Y%m%d" -d "${time_start_cannonical} 1 day ago"`
+OLD_JULIAN=`${DATE} +"%Y%j" -d "${time_start_cannonical} 1 day ago"`
+#HH=`${DATE} +"%H" -d "${time_start_cannonical}"`
 
 # Process each individual VIIRS hour, then copy into second working directory
 evening_run=00     # in UTC
@@ -92,45 +100,94 @@ midnight_run=06
 morning_run=12
 afternoon_run=18
 
-cd $path_proc
+#cd $path_proc
 rm -f *.txt
 
-# Start processing, S-NPP FRP files
-    cd $path_sat
-    if [ ${hh} -eq ${evening_run} ]; then
-       for file in AF_v1r1_npp_s${date0}*.txt
-       do
-         hourv=$(echo ${file} | cut -c22-25)
-         echo ${file}
-         ${r_npp} ${file} $path_proc${yy}${juld0}${hourv}_npp_3km.txt  ${igbp}
-       done
+########################################################################
+
+# Make a temporary directory for individual observations:
+
+if [ -e parts ] ; then
+    rm -rf parts
+fi
+
+mkdir parts
+cd parts
+
+########################################################################
+
+echo "Start processing, S-NPP FRP files"
+#    cd $path_sat
+
+if [ ${hh} -eq ${evening_run} ]; then
+    for file in $VIIRS_NPP_DIR/AF_v1r1_npp_s${date0}*.txt
+    do
+	lines=$( cat "$file" | wc -l )
+	if [[ "$lines" -lt 2 ]] ; then
+	    echo "No data in $file"
+	elif ( echo "$file" | "$GREP" -E '\*' ) ; then
+	    echo "No npp files for this date in $VIIRS_NPP_DIR"
+	    exit 99
+	else
+	    head "$file"
+            hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
+            echo ${file}
+            ${r_npp} ${file} ./${yy}${juld0}${hourv}_npp_3km.txt  ${igbp}
+	    if [ -e fort.22 ] ; then
+		echo "ABORT: did not open output file in $r_npp"
+		exit 9
+	    fi
+	fi
+    done
+fi
+
+########################################################################
+
+echo "NOAA-20 (JPSS-1) data"
+if [ ${hh} -eq ${evening_run} ]; then
+    for file in $VIIRS_J01_DIR/AF_v1r1_j01_s${date0}*.txt
+    do
+	lines=$( cat "$file" | wc -l )
+	if [[ "$lines" -lt 2 ]] ; then
+	    echo "No data in $file"
+	elif ( echo "$file" | "$GREP" -E '\*' ) ; then
+	    echo "No npp files for this date in $VIIRS_J01_DIR"
+	    exit 99
+	else
+	    head "$file"
+            hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
+            echo ${file}
+            ${r_j01} ${file} ./${yy}${juld0}${hourv}_j01_3km.txt  ${igbp}
+	    if [ -e fort.22 ] ; then
+		echo "ABORT: did not open output file in $r_j01"
+		exit 9
+	    fi
+	fi
+    done
+fi
+
+########################################################################
+
+echo "MODIS (Aqua and Terra) data"
+if [ ${hh} -eq ${evening_run} ]; then
+    modis_file=$MODIS_FIRE_DIR/MODIS_C6_Global_MCD14DL_NRT_${yy}${juld0}.txt
+    if [ -s "$modis_file" ] ; then
+        ${r_modis} "$modis_file" ${igbp} 00 24
+        echo mv *mod_3km.txt .
     fi
+fi
 
-# NOAA-20 (JPSS-1) data
-    if [ ${hh} -eq ${evening_run} ]; then
-       for file in AF_v1r1_j01_s${date0}*.txt
-       do
-         hourv=$(echo ${file} | cut -c22-25)
-         echo ${file}
-         ${r_j01} ${file} $path_proc${yy}${juld0}${hourv}_j01_3km.txt  ${igbp}
-       done
-    fi
+########################################################################
 
-# MODIS (Aqua and Terra) data
-    if [ ${hh} -eq ${evening_run} ]; then
-	 echo MODIS_C6_Global_MCD14DL_NRT_${yy}${juld0}.txt
+cd ..
+if [ -e whole ] ; then
+    rm -rf whole
+fi
+mkdir whole
+cd whole
 
-         ${r_modis} MODIS_C6_Global_MCD14DL_NRT_${yy}${juld0}.txt ${igbp} 00 24
-         mv *mod_3km.txt $path_proc
-    fi
+cat $( ls -1 ../parts/*txt | sort ) > $yy$juld${hh}_daily3km.txt
 
-    cd  $path_proc
-    cat * > $yy$juld${hh}_daily3km.txt
+${r_frp}  $yy$juld${hh}_daily3km.txt  $yy$juld${hh}_frp3km.txt
 
-    ${r_frp}  $yy$juld${hh}_daily3km.txt  $yy$juld${hh}_frp3km.txt
-
-    ${r_bbm}  $yy$juld${hh}_frp3km.txt f$yy$juld${hh}_bbm3km_v3.txt   ${igbp}  ${biom}
-
-
-
-
+${r_bbm}  $yy$juld${hh}_frp3km.txt f$yy$juld${hh}_bbm3km_v3.txt   ${igbp}  ${biom}
