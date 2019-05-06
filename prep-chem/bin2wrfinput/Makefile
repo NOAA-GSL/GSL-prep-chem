@@ -12,5 +12,5 @@ all: $(TARGET)
 clean:
 	rm -f $(TARGET) *.o *.mod *.a *~
 
-$(TARGET): fires_ncfmake.f  manipufiles.f  netcdf_writroutines.f  species.f
-	$(FC) $(FFLAGS) fires_ncfmake.f -o $(TARGET) $(LDFLAGS) $(LIBS)
+$(TARGET): fires_ncfmake.f90  manipufiles.inc  netcdf_writroutines.inc  species.inc
+	$(FC) $(FFLAGS) fires_ncfmake.f90 -o $(TARGET) $(LDFLAGS) $(LIBS)
