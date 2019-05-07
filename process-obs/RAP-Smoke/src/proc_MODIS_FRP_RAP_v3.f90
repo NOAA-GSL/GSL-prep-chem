@@ -90,12 +90,19 @@ IMPLICIT NONE
     CHARACTER(len=2) :: cmm,chh,omm,odd,preinthour
     CHARACTER(len=7) :: julday,prehour
 
-    LOGICAL, PARAMETER :: dbg=.false.    ! for debugging
+    LOGICAL, PARAMETER :: dbg=.true.    ! for debugging
+    integer :: islash
         
 ! Call the file data
 ! VIIRS data
         CALL GETARG(1,input_modis)
-        julday = input_modis(29:35)
+        islash=len_trim(input_modis)
+        do while(islash>0)
+           if(input_modis(islash:islash)=='/') exit
+           islash=islash-1
+        enddo
+        
+        julday = input_modis(29+islash:35+islash)
 ! MAP file in binary and float point
         CALL GETARG(2,lulcmap)
 
@@ -284,7 +291,8 @@ jday:           IF ( MOD(yy,4)==0 )  THEN      ! leap year
                ENDIF    jday
 
                IF (yy<2010) THEN
-                  STOP 'wrong year!!!'
+                  write(0,*) 'wrong year!!!'
+                  stop 3
                ENDIF
 
                dyear= yy - 2010

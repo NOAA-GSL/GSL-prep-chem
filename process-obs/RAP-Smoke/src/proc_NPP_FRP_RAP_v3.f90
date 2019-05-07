@@ -64,7 +64,7 @@ IMPLICIT NONE
    REAL    :: delta    ! The model resolution in degrees
    REAL    :: lon, lat
    REAL(4) :: dday
-   LOGICAL, PARAMETER :: dbg=.false.
+   LOGICAL, PARAMETER :: dbg=.true.
 
 ! Input VIIRS data
    CALL GETARG(1,input_viirs)
@@ -110,7 +110,10 @@ IMPLICIT NONE
 !!! Write a subroutine for reading all the VIIRS text files, so we don't read the LULC map for each file!!
 line_loop: DO
               READ(21, *, iostat=stat, end=999) yy,mm,dd,hour,minute,lon_vi,lat_vi,mask,confi,t13,frp_v,posy,posx,bowtie
-              IF (stat /= 0) EXIT
+              IF (stat /= 0) then
+                 print *,'no more lines'
+                 exit
+              END IF
               !IF (bowtie==1) cycle      ! duplicate FRP detections, this needs to be improved in future
 
 ! From Wilfried: You can assume MODIS 1km FRP to peak around 13,000MW, and VIIRS 750m FRP to peak at 16,000MW
@@ -119,8 +122,10 @@ line_loop: DO
    check_loc: IF ( (lat_vi .GT. -9.9) .AND. (lat_vi .LT. 89.9) ) THEN
 
     check_lulc:  IF (read_lulc==1) THEN
+                    print *,'valid data: ',yy,mm,dd,hour,minute,lon_vi,lat_vi,mask,confi,t13,frp_v,posy,posx,bowtie
+
                     ! Input MAP of Land Use and Land cover
-                    OPEN(23, file=lulcmap, FORM='UNFORMATTED', ACCESS="STREAM", IOSTAT=stat)
+                    OPEN(23, file=lulcmap, FORM='UNFORMATTED', ACCESS="STREAM")
 
                     ! Allocate MAP file
                     ALLOCATE(lulc(n_cols,n_rows))
@@ -200,7 +205,8 @@ jday:            IF ( MOD(yy,4)==0 )  THEN      ! leap year
                  ENDIF  jday
 
                  IF (yy<2010) THEN
-                    STOP 'wrong year!!!'
+                    write(0,*) 'wrong year!!!'
+                    stop 3
                  ENDIF
 
                  dyear= yy - 2010
@@ -347,7 +353,7 @@ jday:            IF ( MOD(yy,4)==0 )  THEN      ! leap year
 
             IF (dbg) THEN
                WRITE(*,*), 'lat_vi,lon_vi ',lat_vi,lon_vi
-               WRITE(*,*), 'x,y,ac_frp,ac_fsize,ac_day ',x,y,ac_frp,ac_fsize,ac_day
+               WRITE(*,*), 'x,y,ac_frp,ac_fsize,ac_day ',x,y,ac_frp(x,y),ac_fsize(x,y),ac_day(x,y)
             ENDIF
 
        ENDIF  check_loc
@@ -366,6 +372,7 @@ loop_lon:   DO x=1,a_cols
                   lon = -180.0 + (x-1)*delta
                   lat =   90.0 - (y-1)*delta
                   WRITE(22,700) lon, lat, ac_frp(x,y), ac_fsize(x,y), ac_parea(x,y), ac_day(x,y), cont(x,y)     !, julday
+                  write(0,*) '****OUTPUT TO: ',trim(output)
               ENDIF
             ENDDO    loop_lon
            ENDDO    loop_lat

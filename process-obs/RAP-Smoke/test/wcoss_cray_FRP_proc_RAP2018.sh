@@ -48,16 +48,16 @@ fi
 # LOCAL TO FRP CODE AND TEMP AND OUTPUT FOLDERS
 path_stat="$base_data/Fire_emiss3.0/LU_data/"		#$base_data/Fire_emiss3.0/Work_dir/Debugging/Code2.1
 
-workdir="${path_work}/Work_dir/Temp.$$.$RANDOM/"
-mkdir -p "$workdir"
-cd "$workdir"
+#workdir="${path_work}/Work_dir/Temp.$$.$RANDOM/"
+#mkdir -p "$workdir"
+#cd "$workdir"
 
-#VIIRS_NPP_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/dcom_af_viirs/us007003/af_viirs
-#VIIRS_J01_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/dcom_af_viirs/us007003/af_viirs
-VIIRS_NPP_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/HRRR-Smoke/test/frp_raw
-VIIRS_J01_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/HRRR-Smoke/test/frp_raw
+cd /gpfs/dell2/stmp/Samuel.Trahan/Work_dir/Temp.7391.5259/
+
+VIIRS_NPP_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/RAP-Smoke/test/frp_raw
+VIIRS_J01_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/RAP-Smoke/test/frp_raw
 MODIS_FIRE_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global
-HRRR_DATABASE=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/wrfinput/HRRRX-CONUS
+RAP_DATABASE=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/wrfinput/RAPX
 
 # INPUT FIRE FOLDERS TO MODIS abd VIIRS
 #path_sat="$base_data/BBemiss_pre4.0/Input_data/2018/"
@@ -65,15 +65,15 @@ path_sat="$base_data/BBemiss_pre4.0/Input_data/2018/"
 path_proc="$base_data/BBemiss_pre4.0/Output/HRRR-Smoke/"
 
 # LANDUSE DATA for HRRR-Smoke
-igbp=${path_stat}"MCD12_2013_NA_3KM.bin"
-biom=${path_stat}"BIOME_NA_3km.bin"
+igbp=${path_stat}"MCD12_2013_NA_13km.bin"
+biom=${path_stat}"BIOME_NA_13km.bin"
 
 # LOCAL TO CODES 
-r_npp=${process_obs_codes}"proc_NPP_FRP_HRRR_v3.exe"
-r_j01=${process_obs_codes}"proc_J01_FRP_HRRR_v3.exe"
-r_modis=${process_obs_codes}"proc_MODIS_FRP_HRRR_v3.exe"
-r_frp=${process_obs_codes}"merge_FRP_HRRR_v3.exe"
-r_bbm=${process_obs_codes}"FRE_BBM_HRRR_v4.exe"
+r_npp=${process_obs_codes}"proc_NPP_FRP_RAP_v3.exe"
+r_j01=${process_obs_codes}"proc_J01_FRP_RAP_v3.exe"
+r_modis=${process_obs_codes}"proc_MODIS_FRP_RAP_v3.exe"
+r_frp=${process_obs_codes}"merge_FRP_RAP_v3.exe"
+r_bbm=${process_obs_codes}"FRE_BBM_RAP_v4.exe"
 r_prep_chem=${prep_chem_codes}"prep_chem_sources_RADM_WRF_FIM_.exe"
 r_fires_ncfmake=${fires_ncfmake_codes}"fires_ncfmake.x"
 
@@ -89,6 +89,9 @@ test -x "$r_prep_chem"
 # Start of forecast, number of days
 fcst_start=2019050700       # Start of forecast in 'YYYYMMDDHH' format
 fcst_start_cannonical="${fcst_start:0:4}-${fcst_start:4:2}-${fcst_start:6:2} ${fcst_start:8:2}:00:00 +0000"
+
+# Make sure we have a WRF file at this time.
+test -s $RAP_DATABASE/cycle/$fcst_start/wrfprd/wrfinput_d01
 
 time_start="${time_start:-$fcst_start}"
 time_start_cannonical="${time_start:0:4}-${time_start:4:2}-${time_start:6:2} ${time_start:8:2}:00:00 +0000"
@@ -225,6 +228,7 @@ cat "$prep_chem_sources_inp_in" | $SED "s,%hh%,$hh,g ; s,%dd%,$dd,g ; s,%mm%,$mm
 
 echo "CONVERT TO NETCDF"
 cd ..
+
 if [ -e input ] ; then
     rm -rf input
 fi
@@ -232,7 +236,7 @@ mkdir input
 cd input
 
 cp -fp $( ls -1tr ../bin/*bin |tail -1 ) ./sources.bin
-wrfinput_file=$HRRR_DATABASE/run/$fcst_start/wrfprd/wrfinput_d01
+wrfinput_file=$RAP_DATABASE/cycle/$fcst_start/wrfprd/wrfinput_d01
 cp -fp "$wrfinput_file" wrfinput_d01
 "$r_fires_ncfmake" ./wrfinput_d01 ./sources.bin
 
