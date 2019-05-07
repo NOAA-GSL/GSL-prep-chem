@@ -85,7 +85,7 @@ test -x "$r_prep_chem"
 ###################################################################
 
 # Start of forecast, number of days
-fcst_start=2019050600       # Start of forecast in 'YYYYMMDDHH' format
+fcst_start=2019050700       # Start of forecast in 'YYYYMMDDHH' format
 fcst_start_cannonical="${fcst_start:0:4}-${fcst_start:4:2}-${fcst_start:6:2} ${fcst_start:8:2}:00:00 +0000"
 
 time_start="${time_start:-$fcst_start}"
@@ -93,7 +93,7 @@ time_start_cannonical="${time_start:0:4}-${time_start:4:2}-${time_start:6:2} ${t
 
 juld=$(date -d "$fcst_start_cannonical" +%j)
 juld0=$[$juld-1]
-date0=$(date -d "$fcst_start_cannonical" +%Y%m%d)
+date0=$(date -d "$fcst_start_cannonical - 1 day" +%Y%m%d)
 hh=$(date -d "$fcst_start_cannonical" +%H)
 yy=$(date -d "$fcst_start_cannonical" +%Y)
 #ndays=1
@@ -225,7 +225,7 @@ fi
 mkdir input
 cd input
 
-cp -fp $( ls -1tr ../prep/*bin |tail -1 ) ./sources.bin
+cp -fp $( ls -1tr ../bin/*bin |tail -1 ) ./sources.bin
 wrfinput_file=$HRRR_DATABASE/run/$fcst_start/wrfprd/wrfinput_d01
 cp -fp "$wrfinput_file" wrfinput_d01
 "$r_fires_ncfmake" ./wrfinput_d01 ./sources.bin
