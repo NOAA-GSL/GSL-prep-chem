@@ -9,28 +9,25 @@
 !  Cindy Bruyere
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Following subroutines must be in the 'INCLUDEDIR' directory defined as an environment variable, sepcified in compile statement
-  include 'species.inc'
-  include 'netcdf_writroutines.inc'
-  include 'manipufiles.inc'
+include 'species.inc'
+include 'netcdf_writroutines.inc'
+include 'manipufiles.inc'
 !-------------------------------------------------------------------------------------------
-
-  program fires_ncmake
-! use species, only: plot_dim
-
+program fires_ncmake
+  ! use species, only: plot_dim
   implicit none
-
   character (len=256)    :: input_file                        
   character (len=10)    :: option                        
   character (len=10)    :: plot_var
   integer               :: length_input, length_option, time1, time2
-! integer               :: plot_dim(3)
+  ! integer               :: plot_dim(3)
   integer               :: numarg, i, idummy
-  
   integer               :: ts_xy(3)
   real                  :: ts_ll(3)
   character (len=10)    :: ts_var(100)
   integer               :: ts_i
   character (len=2)     :: ts_type
+  integer, external     :: iargc
   character (len=256)    :: dummy
   character (len=256)   :: binary_file
 
@@ -68,13 +65,9 @@
      stop 2
   endif
 
-  write(*,'(2A)')'INPUT  FILE IS: ',trim(input_file)
-  write(*,'(2A)')'BINARY FILE IS: ',trim(binary_file)
+  write(6,'(2A)')'INPUT FILE IS:  ',trim(input_file)
+  write(6,'(2A)')'BINARY FILE IS: ',trim(input_file)
   print*," "
-
-
-! Now read the file
-  call file_manipulate (binary_file,input_file,length_input)
-
-
-  end program fires_ncmake
+  ! Now read the file
+  call file_manipulate (binary_file,"chemdiag.nc",input_file,length_input)
+end program fires_ncmake

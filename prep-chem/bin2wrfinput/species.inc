@@ -1,6 +1,8 @@
 MODULE species
 !
 ! 3-D species from input binary file - correspondence with output netcdf file done in manipufiles.f
+
+     ! Output to NetCDF diagnostic file
      integer, parameter :: num3dnew = 7
 !    integer, parameter :: num3dnew = 34
 !    integer, parameter :: p_so2 = 1
@@ -46,6 +48,7 @@ MODULE species
 !    integer, parameter :: p_macr = 34 ! Not in binary output file
      character (len=80), dimension(num3dnew),save    :: var3dnew,unit3dnew,desc3dnew
      integer, dimension(num3dnew)                    :: idvaro3dn
+
 !
 !    data var3dnew(p_so2),desc3dnew(p_so2),unit3dnew(p_so2)/ & ! so2 mole/km^2/hr
 !     'ebu_in_so2','EMISSIONS','mol km^-2 hr^-1'/   ! so2 mole/km^2/hr
@@ -127,20 +130,20 @@ MODULE species
      integer, parameter :: p_stdsz = 5
      integer, parameter :: ebb_smk = 6
      character (len=80), dimension(num2dnew),save    :: var2dnew,unit2dnew,desc2dnew
-     integer, dimension(num2dnew)                    :: idvaro2dn
+     integer, dimension(num2dnew)                    :: idvaro2dn,wrfinput,varid_wrfinput
 !
-     data var2dnew(p_flmfrc),desc2dnew(p_flmfrc),unit2dnew(p_flmfrc)/ & ! Tropical Forest veg frac
-      'FLAM_FRAC','bbem2 flame fraction','?'/   ! flam_frac , bbem=2, from prep_chem_sour
-     data var2dnew(p_meanfrp),desc2dnew(p_meanfrp),unit2dnew(p_meanfrp)/ & ! Extratropical Forest veg frac
-      'MEAN_FRP','bbem2 mean FRP','?'/   ! mean_frp , bbem=2, from prep_chem_sour
-     data var2dnew(p_stdfrp),desc2dnew(p_stdfrp),unit2dnew(p_stdfrp)/ & ! Savanna veg frac
-      'STD_FRP','bbem2 FRP standard deviation','?'/   ! std_frp , bbem=2, from prep_chem_sour
-     data var2dnew(p_meansz),desc2dnew(p_meansz),unit2dnew(p_meansz)/ & ! Grassland veg frac
-      'MEAN_FSIZE','bbem2 mean Size','?'/   ! mean_size , bbem=2, from prep_chem_sour
-     data var2dnew(p_stdsz),desc2dnew(p_stdsz),unit2dnew(p_stdsz)/ & ! Tropical Forest veg frac
-      'STD_FSIZE','bbem2 Size standard deviation','?'/   ! std_size , bbem=2, from prep_chem_sour
-     data var2dnew(ebb_smk),desc2dnew(ebb_smk),unit2dnew(ebb_smk)/ & ! surface smoke
-      'EBB_SMOKE','ebb smoke','ug m^-2 s^-1'/   
+     data wrfinput(p_flmfrc),var2dnew(p_flmfrc),desc2dnew(p_flmfrc),unit2dnew(p_flmfrc)/ & ! Tropical Forest veg frac
+      0,'FLAM_FRAC','bbem2 flame fraction','?'/   ! flam_frac , bbem=2, from prep_chem_sour
+     data wrfinput(p_meanfrp),var2dnew(p_meanfrp),desc2dnew(p_meanfrp),unit2dnew(p_meanfrp)/ & ! Extratropical Forest veg frac
+      1,'MEAN_FRP','bbem2 mean FRP','?'/   ! mean_frp , bbem=2, from prep_chem_sour
+     data wrfinput(p_stdfrp),var2dnew(p_stdfrp),desc2dnew(p_stdfrp),unit2dnew(p_stdfrp)/ & ! Savanna veg frac
+      2,'STD_FRP','bbem2 FRP standard deviation','?'/   ! std_frp , bbem=2, from prep_chem_sour
+     data wrfinput(p_meansz),var2dnew(p_meansz),desc2dnew(p_meansz),unit2dnew(p_meansz)/ & ! Grassland veg frac
+      3,'MEAN_FSIZE','bbem2 mean Size','?'/   ! mean_size , bbem=2, from prep_chem_sour
+     data wrfinput(p_stdsz),var2dnew(p_stdsz),desc2dnew(p_stdsz),unit2dnew(p_stdsz)/ & ! Tropical Forest veg frac
+      4,'STD_FSIZE','bbem2 Size standard deviation','?'/   ! std_size , bbem=2, from prep_chem_sour
+     data wrfinput(ebb_smk),var2dnew(ebb_smk),desc2dnew(ebb_smk),unit2dnew(ebb_smk)/ & ! surface smoke
+      5,'EBB_SMOKE','ebb smoke','ug m^-2 s^-1'/   
 !
 ! variables to be read from input netcdf and written to output netcdf, only real 3-D and 2-D variables allowed so far
      integer, parameter :: num_rw = 1
