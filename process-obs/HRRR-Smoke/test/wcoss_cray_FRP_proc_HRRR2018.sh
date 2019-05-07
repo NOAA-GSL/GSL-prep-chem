@@ -76,7 +76,7 @@ r_prep_chem=${prep_chem_codes}"prep_chem_sources_RADM_WRF_FIM_.exe"
 r_fires_ncfmake=${fires_ncfmake_codes}"fires_ncfmake.x"
 
 # Namelists:
-prep_chem_sources_inp=${prep_chem_codes}"prep_chem_sources.inp"
+prep_chem_sources_inp_in=${prep_chem_codes}"prep_chem_sources.inp.IN"
 
 test -x "$r_prep_chem"
 
@@ -95,7 +95,9 @@ juld=$(date -d "$fcst_start_cannonical" +%j)
 juld0=$[$juld-1]
 date0=$(date -d "$fcst_start_cannonical - 1 day" +%Y%m%d)
 hh=$(date -d "$fcst_start_cannonical" +%H)
-yy=$(date -d "$fcst_start_cannonical" +%Y)
+dd=$(date -d "$fcst_start_cannonical" +%d)
+mm=$(date -d "$fcst_start_cannonical" +%m)
+yyyy=$(date -d "$fcst_start_cannonical" +%Y)
 #ndays=1
 
 echo $date0
@@ -113,7 +115,6 @@ morning_run=12
 afternoon_run=18
 
 ########################################################################
-
 # Make a temporary directory for individual observations:
 
 if [ -e parts ] ; then
@@ -138,9 +139,9 @@ if [ ${hh} -eq ${evening_run} ]; then
 	    exit 99
 	else
 	    head "$file"
-	    hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
+	    hourv=$(basename ${file} | cut -c22-25 | $SED s,/,-,g )
 	    echo ${file}
-	    ${r_npp} ${file} ./${yy}${juld0}${hourv}_npp_3km.txt  ${igbp}
+	    ${r_npp} ${file} ./${yyyy}${juld0}${hourv}_npp_3km.txt  ${igbp}
 	    if [ -e fort.22 ] ; then
 		echo "ABORT: did not open output file in $r_npp"
 		exit 9
@@ -163,9 +164,9 @@ if [ ${hh} -eq ${evening_run} ]; then
 	    exit 99
 	else
 	    head "$file"
-	    hourv=$(basename ${file} | cut -c22-25 | sed s,/,-,g )
+	    hourv=$(basename ${file} | cut -c22-25 | $SED s,/,-,g )
 	    echo ${file}
-	    ${r_j01} ${file} ./${yy}${juld0}${hourv}_j01_3km.txt  ${igbp}
+	    ${r_j01} ${file} ./${yyyy}${juld0}${hourv}_j01_3km.txt  ${igbp}
 	    if [ -e fort.22 ] ; then
 		echo "ABORT: did not open output file in $r_j01"
 		exit 9
@@ -178,7 +179,7 @@ fi
 
 echo "MODIS (Aqua and Terra) data"
 if [ ${hh} -eq ${evening_run} ]; then
-    modis_file=$MODIS_FIRE_DIR/MODIS_C6_Global_MCD14DL_NRT_${yy}${juld0}.txt
+    modis_file=$MODIS_FIRE_DIR/MODIS_C6_Global_MCD14DL_NRT_${yyyy}${juld0}.txt
     if [ -s "$modis_file" ] ; then
         ${r_modis} "$modis_file" ${igbp} 00 24
 	if [ -e fort.22 ] ; then
@@ -190,6 +191,7 @@ fi
 
 ########################################################################
 
+echo "MERGE ALL OBS FILES INTO ONE"
 cd ..
 if [ -e whole ] ; then
     rm -rf whole
@@ -197,14 +199,15 @@ fi
 mkdir whole
 cd whole
 
-cat $( ls -1 ../parts/*txt | sort ) > $yy$juld${hh}_daily3km.txt
+cat $( ls -1 ../parts/*txt | sort ) > $yyyy$juld${hh}_daily3km.txt
 
-${r_frp}  $yy$juld${hh}_daily3km.txt  $yy$juld${hh}_frp3km.txt
+${r_frp}  $yyyy$juld${hh}_daily3km.txt  $yyyy$juld${hh}_frp3km.txt
 
-${r_bbm}  $yy$juld${hh}_frp3km.txt f$yy$juld${hh}_bbm3km_v3.txt   ${igbp}  ${biom}
+${r_bbm}  $yyyy$juld${hh}_frp3km.txt f$yyyy$juld${hh}_bbm3km_v3.txt   ${igbp}  ${biom}
 
 ########################################################################
 
+echo "CONVERT TO BINARY"
 cd ..
 if [ -e bin ] ; then
     rm -rf bin
@@ -212,12 +215,13 @@ fi
 mkdir bin
 cd bin
 
-cp -fp ../whole/f$yy$juld${hh}_bbm3km_v3.txt .
-cp -fp "$prep_chem_sources_inp" prep_chem_sources.inp
+cp -fp ../whole/f$yyyy$juld${hh}_bbm3km_v3.txt .
+cat "$prep_chem_sources_inp_in" | $SED "s,%hh%,$hh,g ; s,%dd%,$dd,g ; s,%mm%,$mm,g ; s,%yyyy%,$yyyy,g" > prep_chem_sources.inp
 "$r_prep_chem"
 
 ########################################################################
 
+echo "CONVERT TO NETCDF"
 cd ..
 if [ -e input ] ; then
     rm -rf input
