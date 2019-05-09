@@ -78,7 +78,7 @@ r_prep_chem=${prep_chem_codes}"prep_chem_sources_RADM_WRF_FIM_.exe"
 r_fires_ncfmake=${fires_ncfmake_codes}"fires_ncfmake.x"
 
 # Namelists:
-prep_chem_sources_inp_in=${prep_chem_codes}"prep_chem_sources.inp.IN"
+prep_chem_sources_inp_in=${prep_chem_codes}"HRRR_CONUS_prep_chem_sources.inp.in"
 
 test -x "$r_prep_chem"
 

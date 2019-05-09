@@ -54,11 +54,6 @@ path_stat="$base_data/Fire_emiss3.0/LU_data/"		#$base_data/Fire_emiss3.0/Work_di
 
 cd /gpfs/dell2/stmp/Samuel.Trahan/Work_dir/Temp.7391.5259/
 
-VIIRS_NPP_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/RAP-Smoke/test/frp_raw
-VIIRS_J01_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/RAP-Smoke/test/frp_raw
-MODIS_FIRE_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global
-RAP_DATABASE=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/wrfinput/RAPX
-
 # INPUT FIRE FOLDERS TO MODIS abd VIIRS
 #path_sat="$base_data/BBemiss_pre4.0/Input_data/2018/"
 path_sat="$base_data/BBemiss_pre4.0/Input_data/2018/"
@@ -78,7 +73,7 @@ r_prep_chem=${prep_chem_codes}"prep_chem_sources_RADM_WRF_FIM_.exe"
 r_fires_ncfmake=${fires_ncfmake_codes}"fires_ncfmake.x"
 
 # Namelists:
-prep_chem_sources_inp_in=${prep_chem_codes}"prep_chem_sources.inp.IN"
+prep_chem_sources_inp_in=${prep_chem_codes}"RAP_prep_chem_sources.inp.in"
 
 test -x "$r_prep_chem"
 
@@ -89,6 +84,11 @@ test -x "$r_prep_chem"
 # Start of forecast, number of days
 fcst_start=2019050700       # Start of forecast in 'YYYYMMDDHH' format
 fcst_start_cannonical="${fcst_start:0:4}-${fcst_start:4:2}-${fcst_start:6:2} ${fcst_start:8:2}:00:00 +0000"
+
+VIIRS_NPP_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/RAP-Smoke/test/frp_raw/$fcst_start
+VIIRS_J01_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/GSD-prep-chem/process-obs/RAP-Smoke/test/frp_raw/$fcst_start
+MODIS_FIRE_DIR=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global
+RAP_DATABASE=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/wrfinput/RAPX
 
 # Make sure we have a WRF file at this time.
 test -s $RAP_DATABASE/cycle/$fcst_start/wrfprd/wrfinput_d01
