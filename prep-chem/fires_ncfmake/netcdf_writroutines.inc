@@ -1,20 +1,48 @@
 !------------------------------------------------------------------------------
-subroutine initialize_wrfinput_2d(cdfid)
+subroutine initialize_wrfinput_2d(cdfid,filename)
   use species
   implicit none
+  interface
+     subroutine nferr_0_or_die(ierr,filename,action,variable)
+       character(len=*),intent(in) :: filename,action
+       character(len=*),intent(in),optional :: variable
+       integer, intent(in) :: ierr
+     end subroutine nferr_0_or_die
+  end interface
   include 'netcdf.inc'
   integer ivar,ierr
   integer, intent(in) :: cdfid
+  character(len=*), intent(in) :: filename
+  integer :: ndims,dimids(3)
 
   do ivar=1,num2dnew
      if(wrfinput(ivar)<1) cycle ! This var should not be in wrfinput
 
      ierr=nf_inq_varid(cdfid,trim(var2dnew(ivar)),varid_wrfinput(ivar))
      if(ierr/=0) then
-66      format(A,': cannot get varid from wrfinput_d01: ',A)
-        write(0,66) trim(var2dnew(ivar)),nf_strerror(ierr)
-        stop 3
+        print 77,trim(var2dnew(ivar))
+        ! Need to define the variable instead.
+        ndims=3
+
+        ierr=nf_redef(cdfid)
+        call nferr_0_or_die(ierr,'nf_redef',filename)
+
+        ierr=nf_inq_dimid(cdfid,'west_east',dimids(1))
+        call nferr_0_or_die(ierr,'nf_inq_dimid',filename,'west_east')
+
+        ierr=nf_inq_dimid(cdfid,'south_north',dimids(2))
+        call nferr_0_or_die(ierr,'nf_inq_dimid',filename,'south_north')
+
+        ierr=nf_inq_dimid(cdfid,'Time',dimids(3))
+        call nferr_0_or_die(ierr,'nf_inq_dimid',filename,'Time')
+
+        ierr=nf_def_var(cdfid,trim(var2dnew(ivar)),NF_FLOAT,ndims,dimids,varid_wrfinput(ivar))
+        call nferr_0_or_die(ierr,'nf_def_var',filename,trim(var2dnew(ivar)))
+
+        ierr=nf_enddef(cdfid)
+        call nferr_0_or_die(ierr,'nf_enddef',filename)
      endif
+77   format('Var ',A,': have to add this variable to wrfinput')
 88   format('Var ',A,': varid=',I0)
      print 88,trim(var2dnew(ivar)),varid_wrfinput(ivar)
   end do

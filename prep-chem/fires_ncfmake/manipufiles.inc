@@ -376,7 +376,7 @@ write(0,*) 'got here'
   ! Time has no attributes
   call initializ_3d(cdfid,ncod)
   call initializ_2d(cdfid,ncod)
-  call initialize_wrfinput_2d(cdfid)
+  call initialize_wrfinput_2d(cdfid,ncfile_wrfinput)
   !     if(num_rw.gt.0)call ncf_readwrite( cdfid,ncod,0,0)
   rcodeo=nf_enddef(ncod)
   call nferr_0_or_die(rcodeo,ncfile_diagnostic,'nf_enddef')
