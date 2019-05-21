@@ -8,44 +8,70 @@
 #   $2 = path to a scratch space
 #   $3 = path to FIXchem
 
-set -xue
+set -xue # This line must be at the top of this script
 
 YYYYMMDDHH="$1" # pass PDY and cyc together for convenience
 workarea="$2" # will make a subdirectory here
 export FIXchem="$3"
 
 ########################################################################
+# This section contains information that should come from parm/config
+# or higher level in the workflow.
+# ----------------------------------------------------------------------
 
-# PDY, cyc: normally, setpdy.sh would give you these two, but we need
-# these as a script argument:
+# Specify the resolution; should be in parm/config
+export CASE=C384
 
-export PDY=${YYYYMMDDHH:0:8}
-export cyc=${YYYYMMDDHH:8:2}
-
-# Make sure the optional variables are NOT set:
-unset SYEAR SDAY SMONTH SHOUR NLN NCP
-
-# Specify data paths to "dcom" -- these should be updated in the
-# actual workflow.
+# Specify data paths to "dcom" -- these should be changed to the
+# actual dcom or parallel dcom locations.
 export BBEM_MODIS_DATA=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global/MODIS_C6_Global_MCD14DL_NRT_
 export BBEM_WFABBA_DATA=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/f
 
-# Randomly generate a scrub space directory name:
+# The scrub space used by this workflow (nwtmp or experiement area).
+# Normally, this would be passed down from the ecflow-level scripts,
+# or from Rocoto.
 randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
 testtop="$workarea"/test.$randhex
 
-# Set the data locations:
+# Set the job's scrub space:
 export DATA="$testtop/work"
-export COMOUTchem="$testtop/com/gens/gefs.$PDY/$cyc/chem/"
-export CHEM_OUTPUT_FORMAT="gec00.t${cyc}z.chem<input>.tile<tile>.dat"
 
-# Figure out HOMEchem and its subdirectories:
+# Installation area and its subdirectories:
 parent=$( dirname "$0" )
 cd "$parent/.."
 export HOMEchem=$( pwd -P )
 export PARMchem=$HOMEchem/parm
 EXchem=$HOMEchem/scripts
 EXECchem=$HOMEchem/exec
+
+# Specify the name and path to the prep_chem_sources executable:
+PREP_CHEM_SOURCES_EXE="$EXECchem/prep_chem_sources_RADM_FV3_SIMPLE.exe"
+
+########################################################################
+# This section contains information that should come from automated
+# scripts that are specific to the NCEP environment.
+# ----------------------------------------------------------------------
+
+# PDY, cyc: normally, setpdy.sh or Rocoto would give you these two,
+# but we need these as a script argument:
+export PDY=${YYYYMMDDHH:0:8}
+export cyc=${YYYYMMDDHH:8:2}
+
+########################################################################
+# Everything below this line goes in the actual J-JOB:
+# ----------------------------------------------------------------------
+
+set -xue # This line must be at the top of this script
+
+# Job's output directory:
+export COMOUTchem="$testtop/com/gens/gefs.$PDY/$cyc/chem/"
+
+# Make sure the alternative date variables are NOT set:
+unset SYEAR SDAY SMONTH SHOUR
+
+# The output filename format; note that %INPUT% and %TILE% will be
+# replaced automatically:
+export CHEM_OUTPUT_FORMAT="gec00.t${cyc}z.chem%INPUT%.tile%TILE%.dat"
 
 # Make sure all pre-installed directories exist:
 test -d "$HOMEchem"
@@ -54,8 +80,7 @@ test -d "$PARMchem"
 test -d "$EXECchem"
 test -d "$FIXchem"
 
-# Specify the name of the prep_chem_sources executable:
-PREP_CHEM_SOURCES_EXE="$EXECchem/prep_chem_sources_RADM_FV3_SIMPLE.exe"
+# Make sure the executable exists, has non-zero size, and is executable:
 test -s "$PREP_CHEM_SOURCES_EXE"
 test -x "$PREP_CHEM_SOURCES_EXE"
 
@@ -72,8 +97,8 @@ export PREP_CHEM_SOURCES_EXE
 if [ ! -d "$testtop" ] ; then
     rm -rf "$testtop"
 fi
-mkdir "$DATA"
-mkdir "$COMOUTchem"
+mkdir -p "$DATA"
+mkdir -p "$COMOUTchem"
 cd "$DATA"
 
 # Pass control to ex-script:

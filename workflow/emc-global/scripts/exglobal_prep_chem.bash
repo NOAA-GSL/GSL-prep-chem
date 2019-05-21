@@ -1,17 +1,17 @@
 #! /bin/bash
 
+# NOTE: This is a bash script; not ksh or sh.  It uses bash regular
+# expression captures for speed.
+
 # Runs the prep_chem_sources program to produce FV3 inputs for
-# chemistry fields.  Expected inputs are all environment variables.
+# chemistry fields.  All inputs are environment variables; any
+# arguments are ignored.
 #
 # Output filenames are generated from this pair of variables:
 #   $COMOUTchem/$CHEM_OUTPUT_FORMAT
 # The following two strings are replaced:
-#   <input> = tracer name or other input name
-#   <tile> = tile number
-#
-# Optional variables:
-#   $NCP = "cp -p" or equivalent
-#   $NLN = "ln -sf" or equivalent
+#   %INPUT% = tracer name or other input name
+#   %TILE% = tile number
 #
 # Date & Time:
 #   $SYEAR, $SMONTH, $SDAY, $SHOUR
@@ -20,7 +20,10 @@
 #
 # Executable: $PREP_CHEM_SOURCES_EXE
 #
-# Inputs:
+# Resolution (ie. C384): $CASE
+#  NOTE: Only C384 will work presently.
+#
+# Input data:
 #   $PARMchem/prep_chem_sources.inp.IN
 #   $FIXchem = static input directory
 #   $BBEM_MODIS_DATA = location of MODIS fire data plus filename prefix
@@ -28,6 +31,9 @@
 #
 # Other:
 #   $DATA = where to run
+#   $SENDCOM = YES if data should be copied to COM; default is YES
+#   $SENDDBN = ignored; would enable NCO's dbnet calls
+#   $SENDECF = ignored; would enable ecflow_client calls
 
 # DEV NOTES
 # As of this writing, test data for MODIS $BBEM_MODIS_DATA is:
@@ -49,9 +55,6 @@ if [ ! -d "$DATA" ] ; then
     cd "$DATA"
 fi
 
-NCP="${NCP:-/bin/cp -pf}"
-NLN="${NLN:-/bin/ln -sf}"
-
 SYEAR="${SYEAR:-${PDY:0:4}}"
 SMONTH="${SMONTH:-${PDY:4:2}}"
 SDAY="${SDAY:-${PDY:6:2}}"
@@ -59,20 +62,24 @@ SHOUR="${SHOUR:-$cyc}"
 
 PREP_CHEM_SOURCES_EXE="${PREP_CHEM_SOURCES_EXE:-$EXECchem/prep_chem_sources}"
 
+SENDCOM="${SENDCOM:-YES}"
+# - this variable is not used - SENDDBN="${SENDDBN:-NO}"
+# - this variable is not used - SENDECF="${SENDECF:-NO}"
+
 echo "in emission_setup:"
 emiss_date="$SYEAR-$SMONTH-$SDAY-$SHOUR"
 echo "emiss_date: $emiss_date"
 echo "yr: $SYEAR mm: $SMONTH dd: $SDAY hh: $SHOUR"
 
-FIX_GRID_SPEC=$FIXchem/grid-spec/C384/C384_grid_spec.tile
+FIX_GRID_SPEC=$FIXchem/grid-spec/${CASE}/${CASE}_grid_spec
 
-$NCP "$PARMchem/prep_chem_sources.inp.IN" .
+cp -fp "$PARMchem/prep_chem_sources.inp.IN" .
 cat prep_chem_sources.inp.IN | sed \
     "s:%HH%:$SHOUR:g                                  ;
      s:%DD%:$SDAY:g                                   ;
      s:%MM%:$SMONTH:g                                 ;
      s:%YYYY%:$SYEAR:g                                ;
-     s:%FIXchem%:$FIXchem                             ;
+     s:%FIXchem%:$FIXchem:g                           ;
      s:%FIX_GRID_SPEC%:$FIX_GRID_SPEC:g               ;
      s:%BBEM_WFABBA_DATA%:$BBEM_WFABBA_DATA:g         ;
      s:%BBEM_MODIS_DATA%:$BBEM_MODIS_DATA:g           ;
@@ -95,28 +102,30 @@ for itile in $( seq 1 6 ) ; do
     pushd $tiledir
 
     for inout in $inout_list ; do
-	set +x # A line-by-line log is too verbose here:
-	if [[ $inout =~ '(.*),(.*)' ]] ; then
-	    infile="${CASE}-T-${emiss_date}0000-${BASH_REMATCH[1]}.bin"
-	    outfile=$( echo "$COMOUTchem/$CHEM_OUTPUT_FORMAT" | sed \
-		"s:<input>:${BASH_REMATCH[2]}:g ;
-                 s:<tile>:$itile:g" )
-	else
-	    echo "Internal error: could not split \"$inout\" into two elements at a comma." 1>&2
-	    exit 9
-	fi
-	set -x
+        set +x # A line-by-line log is too verbose here:
+        if [[ $inout =~ (.*),(.*) ]] ; then
+            infile="${CASE}-T-${emiss_date}0000-${BASH_REMATCH[1]}.bin"
+            outfile=$( echo "$COMOUTchem/$CHEM_OUTPUT_FORMAT" | sed \
+                "s:%INPUT%:${BASH_REMATCH[2]}:g ;
+                 s:%TILE%:$itile:g" )
+        else
+            echo "Internal error: could not split \"$inout\" into two elements at a comma." 1>&2
+            exit 9
+        fi
 
-	outdir=$( dirname "$outfile" )
-	outbase=$( basename "$outfile" )
-	randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
-	tempfile="$outdir/.tmp.$outbase.$randhex.part"
-	if [[ ! -d "$outdir" ]] ; then
-	    mkdir -p "$outdir"
-	fi
-	rm -f "$outfile"
-	cp -fp "$infile" "$tempfile"
-	mv -T -f "$tempfile" "$outfile"
+        outdir=$( dirname "$outfile" )
+        outbase=$( basename "$outfile" )
+        randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
+        tempfile="$outdir/.tmp.$outbase.$randhex.part"
+
+        set -x
+
+        if [[ ! -d "$outdir" ]] ; then
+            mkdir -p "$outdir"
+        fi
+        rm -f "$outfile"
+        cp -fp "$infile" "$tempfile"
+        mv -T -f "$tempfile" "$outfile"
     done
 
     popd
