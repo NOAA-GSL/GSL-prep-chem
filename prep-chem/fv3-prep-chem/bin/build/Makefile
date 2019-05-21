@@ -1,7 +1,7 @@
 # Define path and compilation 
 
-include paths.mk
-include include.mk.$(OPT)
+-include paths.mk
+-include include.mk.$(OPT)
 
 # Compiler commands.
 
@@ -14,11 +14,12 @@ C_COMMAND  = $(C_COMP) -c $(C_OPTS) $(INCLUDES)
 
 # Define objects.
 
-include objects_prepsrc.mk
+-include objects_prepsrc.mk
 
 # Define targets.
 
-EXE       = ../prep_chem_sources_$(CHEM)_$(AER).exe
+AER      ?= SIMPLE
+EXE       = ../../../../workflow/emc-global/exec/prep_chem_sources_$(CHEM)_$(AER).exe
 RAMSUTILS = ramsutils.a
 RAMSLIB   = ramslib.a
 

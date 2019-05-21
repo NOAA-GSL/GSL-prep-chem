@@ -23,23 +23,30 @@
 # Inputs:
 #   $PARMchem/prep_chem_sources.inp.IN
 #   $FIXchem = static input directory
-#   $BBEM_MODIS_DATA_DIR = location of MODIS fire data
-#   $BBEM_WFABBA_DATA_DIR = location of other input data
-#   $FIX_GRID_SPEC = directory with FV3 model grid
+#   $BBEM_MODIS_DATA = location of MODIS fire data plus filename prefix
+#   $BBEM_WFABBA_DATA = location of other input data plus filename prefix
 #
 # Other:
 #   $DATA = where to run
 
-# Dev nodes.  Test data for MODIS $BBEM_MODIS_DATA_DIR
-#  Gyre/Surge/Venus: /gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global
-# For "other input data" $BBEM_WFABBA_DATA_DIR
+# DEV NOTES
+# As of this writing, test data for MODIS $BBEM_MODIS_DATA is:
+#  Gyre/Surge/Venus: /gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global/MODIS_C6_Global_MCD14DL_NRT_
+# For "other input data" $BBEM_WFABBA_DATA:
 #  Jet: /public/data/sat/nesdis/wf_abba/
-#  Gyre/Surge/Venus: /gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba
+#  Gyre/Surge/Venus: /gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/f
+# The FIXchem:
+#  Gyre/Surge/Venus: /gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/FIXchem/
 
 set -xue
 
 if [ ! -d "$COMOUTchem" ] ; then
     mkdir -p "$COMOUTchem"
+fi
+
+if [ ! -d "$DATA" ] ; then
+    mkdir -p "$DATA"
+    cd "$DATA"
 fi
 
 NCP="${NCP:-/bin/cp -pf}"
@@ -52,10 +59,12 @@ SHOUR="${SHOUR:-$cyc}"
 
 PREP_CHEM_SOURCES_EXE="${PREP_CHEM_SOURCES_EXE:-$EXECchem/prep_chem_sources}"
 
-print "in emission_setup:"
+echo "in emission_setup:"
 emiss_date="$SYEAR-$SMONTH-$SDAY-$SHOUR"
-print "emiss_date: $emiss_date"
-print "yr: $SYEAR mm: $SMONTH dd: $SDAY hh: $SHOUR"
+echo "emiss_date: $emiss_date"
+echo "yr: $SYEAR mm: $SMONTH dd: $SDAY hh: $SHOUR"
+
+FIX_GRID_SPEC=$FIXchem/grid-spec/C384/C384_grid_spec.tile
 
 $NCP "$PARMchem/prep_chem_sources.inp.IN" .
 cat prep_chem_sources.inp.IN | sed \
@@ -64,13 +73,13 @@ cat prep_chem_sources.inp.IN | sed \
      s:%MM%:$SMONTH:g                                 ;
      s:%YYYY%:$SYEAR:g                                ;
      s:%FIXchem%:$FIXchem                             ;
-     s:%FIX_GRID_SPEC%:$FIXgridspec:g                 ;
-     s:%BBEM_WFABBA_DATA_DIR%:$BBEM_WFABBA_DATA_DIR:g ;
-     s:%BBEM_MODIS_DATA_DIR%:$BBEM_MODIS_DATA_DIR:g   ;
+     s:%FIX_GRID_SPEC%:$FIX_GRID_SPEC:g               ;
+     s:%BBEM_WFABBA_DATA%:$BBEM_WFABBA_DATA:g         ;
+     s:%BBEM_MODIS_DATA%:$BBEM_MODIS_DATA:g           ;
     " > prep_chem_sources.inp
 
 if ( cat prep_chem_sources.inp | grep % ) ; then
-    echo "Internal error: still have % signs in prep_chem_sources.inp" 1>&2
+    echo "POSSIBLE ERROR: still have % signs in prep_chem_sources.inp" 1>&2
     echo "Some variables may not have been replaced." 1>&2
     echo "I will continue, but you should keep your fingers crossed." 1>&2
 fi
@@ -86,21 +95,31 @@ for itile in $( seq 1 6 ) ; do
     pushd $tiledir
 
     for inout in $inout_list ; do
+	set +x # A line-by-line log is too verbose here:
 	if [[ $inout =~ '(.*),(.*)' ]] ; then
 	    infile="${CASE}-T-${emiss_date}0000-${BASH_REMATCH[1]}.bin"
 	    outfile=$( echo "$COMOUTchem/$CHEM_OUTPUT_FORMAT" | sed \
 		"s:<input>:${BASH_REMATCH[2]}:g ;
                  s:<tile>:$itile:g" )
 	else
-	    echo "Internal error: could not split $inout into two elements at a comma." 1>&2
+	    echo "Internal error: could not split \"$inout\" into two elements at a comma." 1>&2
 	    exit 9
 	fi
-	rm *-ab.bin
+	set -x
+
+	outdir=$( dirname "$outfile" )
+	outbase=$( basename "$outfile" )
+	randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
+	tempfile="$outdir/.tmp.$outbase.$randhex.part"
+	if [[ ! -d "$outdir" ]] ; then
+	    mkdir -p "$outdir"
+	fi
+	rm -f "$outfile"
+	cp -fp "$infile" "$tempfile"
+	mv -T -f "$tempfile" "$outfile"
     done
 
     popd
-
-    rm *-g${itile}.ctl *-g${itile}.vfm *-g${itile}.gra
 done
 
 echo 'Success!'

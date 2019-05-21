@@ -1,3 +1,4 @@
+  $RP_INPUT
 !#################################################################
 !  CCATT-BRAMS/MCGA-CPTEC/WRF-Chem/FIM-Chem emission models CPTEC/INPE
 !  version 1.6: April 2016
@@ -81,8 +82,8 @@
    merge_GFEDv2_bbem =0,
 !
 !---------------- veg type data set (dir + prefix)
-   bbem_wfabba_data_dir   ='%BBEM_WFABBA_DATA_DIR%',
-   bbem_modis_data_dir    ='%BBEM_MODIS_DATA_DIR%',
+   bbem_wfabba_data_dir   ='%BBEM_WFABBA_DATA%',
+   bbem_modis_data_dir    ='%BBEM_MODIS_DATA%',
    bbem_inpe_data_dir     ='%FIXchem%/Emission_data/fires_data/DSA/Focos',
    bbem_extra_data_dir    ='%FIXchem%/Emission_data/fires_data/BLMALASKA/current.dat',
 
