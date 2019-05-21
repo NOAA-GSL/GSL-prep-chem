@@ -15,6 +15,14 @@ subroutine initialize_wrfinput_2d(cdfid,filename)
   character(len=*), intent(in) :: filename
   integer :: ndims,dimids(3)
 
+!                 DDMASS_SMOKE:FieldType = 104 ;
+!                 DDMASS_SMOKE:MemoryOrder = "XY " ;
+!                 DDMASS_SMOKE:description = "smoke dry deposition, accumulated" ;
+!                 DDMASS_SMOKE:units = "ug/m2" ;
+!                 DDMASS_SMOKE:stagger = "" ;
+!                 DDMASS_SMOKE:coordinates = "XLONG XLAT XTIME" ;
+
+
   do ivar=1,num2dnew
      if(wrfinput(ivar)<1) cycle ! This var should not be in wrfinput
 
@@ -40,11 +48,16 @@ subroutine initialize_wrfinput_2d(cdfid,filename)
         call nferr_0_or_die(ierr,'nf_def_var',filename,trim(var2dnew(ivar)))
         varid_wrfinput(ivar)=varid
 
+        ! Attributes
+
         ierr=nf_put_att_int(cdfid,varid,'FieldType',NF_INT,1,104)
         call nferr_0_or_die(ierr,'nf_put_att_int',filename,trim(var2dnew(ivar)),'FieldType')
 
         ierr=nf_put_att_text(cdfid,varid,'MemoryOrder',3,'XY ')
         call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'MemoryOrder')
+
+        ierr=nf_put_att_text(cdfid,varid,'description',len_trim(desc2dnew(ivar)),trim(desc2dnew(ivar)))
+        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'description')
 
         ierr=nf_put_att_text(cdfid,varid,'units',len_trim(unit2dnew(ivar)),trim(unit2dnew(ivar)))
         call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'units')
@@ -52,10 +65,7 @@ subroutine initialize_wrfinput_2d(cdfid,filename)
         ierr=nf_put_att_text(cdfid,varid,'stagger',0,'')
         call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'stagger')
         
-        ierr=nf_put_att_text(cdfid,varid,'coordinates',len('longitude latitude'),'longitude latitude')
-        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'coordinates')
-
-        ierr=nf_put_att_text(cdfid,varid,'grid_mapping',len('latitude_longitude'),'latitude_longitude')
+        ierr=nf_put_att_text(cdfid,varid,'coordinates',len('XLONG XLAT XTIME'),'XLONG XLAT XTIME')
         call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'coordinates')
 
         ierr=nf_enddef(cdfid)
