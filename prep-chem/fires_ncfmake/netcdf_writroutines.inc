@@ -3,14 +3,14 @@ subroutine initialize_wrfinput_2d(cdfid,filename)
   use species
   implicit none
   interface
-     subroutine nferr_0_or_die(ierr,filename,action,variable)
+     subroutine nferr_0_or_die(ierr,filename,action,variable,attribute)
        character(len=*),intent(in) :: filename,action
-       character(len=*),intent(in),optional :: variable
+       character(len=*),intent(in),optional :: variable,attribute
        integer, intent(in) :: ierr
      end subroutine nferr_0_or_die
   end interface
   include 'netcdf.inc'
-  integer ivar,ierr
+  integer ivar,ierr,varid
   integer, intent(in) :: cdfid
   character(len=*), intent(in) :: filename
   integer :: ndims,dimids(3)
@@ -36,8 +36,27 @@ subroutine initialize_wrfinput_2d(cdfid,filename)
         ierr=nf_inq_dimid(cdfid,'Time',dimids(3))
         call nferr_0_or_die(ierr,'nf_inq_dimid',filename,'Time')
 
-        ierr=nf_def_var(cdfid,trim(var2dnew(ivar)),NF_FLOAT,ndims,dimids,varid_wrfinput(ivar))
+        ierr=nf_def_var(cdfid,trim(var2dnew(ivar)),NF_FLOAT,ndims,dimids,varid)
         call nferr_0_or_die(ierr,'nf_def_var',filename,trim(var2dnew(ivar)))
+        varid_wrfinput(ivar)=varid
+
+        ierr=nf_put_att_int(cdfid,varid,'FieldType',NF_INT,1,104)
+        call nferr_0_or_die(ierr,'nf_put_att_int',filename,trim(var2dnew(ivar)),'FieldType')
+
+        ierr=nf_put_att_text(cdfid,varid,'MemoryOrder',3,'XY ')
+        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'MemoryOrder')
+
+        ierr=nf_put_att_text(cdfid,varid,'units',len_trim(unit2dnew(ivar)),trim(unit2dnew(ivar)))
+        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'units')
+
+        ierr=nf_put_att_text(cdfid,varid,'stagger',0,'')
+        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'stagger')
+        
+        ierr=nf_put_att_text(cdfid,varid,'coordinates',len('longitude latitude'),'longitude latitude')
+        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'coordinates')
+
+        ierr=nf_put_att_text(cdfid,varid,'grid_mapping',len('latitude_longitude'),'latitude_longitude')
+        call nferr_0_or_die(ierr,'nf_put_att_text',filename,trim(var2dnew(ivar)),'coordinates')
 
         ierr=nf_enddef(cdfid)
         call nferr_0_or_die(ierr,'nf_enddef',filename)
