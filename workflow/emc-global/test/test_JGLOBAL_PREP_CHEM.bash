@@ -42,7 +42,8 @@ export BBEM_MODIS_DIR_YESTERDAY=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MO
 export BBEM_WFABBA_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/
 export BBEM_WFABBA_DIR_YESTERDAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/
 
-# Copy whichever of these is relevant into your ecf file:
+# Copy whichever of these is relevant into your ecf file.  Do NOT load
+# prod_util in your ecf file though; the head.h does that for you.
 if [ -d /ptmpp2 ] ; then
     # WCOSS Phase 1 and 2 need to load the compiler and libraries.
     module load prod_util
@@ -61,6 +62,21 @@ elif [ -s /etc/SuSE-release -a -e /usrx ] ; then
     module load NetCDF-intel-haswell/4.2
     module load HDF5-serial-intel-haswell/1.8.9
     module load prod_util
+elif [ -d /scratch3 -a -d /scratch4 ] ; then
+    # Theia
+    module load intel
+    module load hdf5/1.8.14
+    module load netcdf/4.4.0
+
+    # Have to get prod_util from a dev area:
+    module use /scratch4/NCEPDEV/nems/noscrub/emc.nemspara/soft/modulefiles/
+    module load prod_util
+
+    # Different data area:
+    export BBEM_WFABBA_DIR_TODAY=/scratch4/BMC/public/data/sat/nesdis/wf_abba/
+    export BBEM_WFABBA_DIR_YESTERDAY="$BBEM_WFABBA_DIR_TODAY"
+    export BBEM_MODIS_DIR_TODAY=/scratch4/BMC/public/data/sat/firms/global/
+    export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
 fi
 
 # Name of this task in the ecflow suite:
