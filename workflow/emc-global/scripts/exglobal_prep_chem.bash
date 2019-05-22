@@ -1,7 +1,5 @@
 #! /bin/bash
-
-# NOTE: This is a bash script; not ksh or sh.  It uses bash regular
-# expression captures for speed.
+# This is a bash script; not ksh or sh.  Do not change the above line.
 
 # Runs the prep_chem_sources program to produce FV3 inputs for
 # chemistry fields.  All inputs are environment variables; any
@@ -26,8 +24,12 @@
 # Input data:
 #   $PARMchem/prep_chem_sources.inp.IN
 #   $FIXchem = static input directory
-#   $BBEM_MODIS_DATA = location of MODIS fire data plus filename prefix
-#   $BBEM_WFABBA_DATA = location of other input data plus filename prefix
+#   $BBEM_MODIS_DATA_DIR_TODAY = directory with today's modis fire data
+#   $BBEM_MODIS_DATA_DIR_YESTERDAY = directory with yesterday's modis fire data
+#   $BBEM_WFABBA_DATA_DIR_TODAY = directory with today's wf_abba data
+#   $BBEM_WFABBA_DATA_DIR_YESTERDAY = directory with yesterday's wf_abba data
+# (Each data source must have both today and yesterday directories specified, but
+# only one day per source must exist to run this script.)
 #
 # Other:
 #   $DATA = where to run
@@ -60,7 +62,7 @@ SMONTH="${SMONTH:-${PDY:4:2}}"
 SDAY="${SDAY:-${PDY:6:2}}"
 SHOUR="${SHOUR:-$cyc}"
 
-PREP_CHEM_SOURCES_EXE="${PREP_CHEM_SOURCES_EXE:-$EXECchem/prep_chem_sources}"
+PREP_CHEM_SOURCES_EXE="${PREP_CHEM_SOURCES_EXE:-$EXECchem/prep_chem_sources_RADM_FV3_SIMPLE.exe}"
 
 SENDCOM="${SENDCOM:-YES}"
 # - this variable is not used - SENDDBN="${SENDDBN:-NO}"
@@ -73,16 +75,75 @@ echo "yr: $SYEAR mm: $SMONTH dd: $SDAY hh: $SHOUR"
 
 FIX_GRID_SPEC=$FIXchem/grid-spec/${CASE}/${CASE}_grid_spec
 
+mkdir MODIS
+mkdir WFABBA
+
+jul_today=$( date -d "$SYEAR-$SMONTH-$SDAY 12:00:00 +0000" +%Y%j )
+jul_yesterday=$( date -d "$SYEAR-$SMONTH-$SDAY 12:00:00 +0000 + -1 day" +%Y%j )
+
+count_modis=0
+count_wfabba=0
+
+cd MODIS
+
+set +x # This region is too verbose for "set -x"
+for path in \
+    "$BBEM_MODIS_DIR_YESTERDAY/MODIS_C6_Global_MCD14DL_NRT_$jul_today"* \
+    "$BBEM_MODIS_DIR_TODAY/MODIS_C6_Global_MCD14DL_NRT_$jul_yesterday"*
+do
+    if [ -s "$path" ] ; then
+        ln -s "$path" .
+        count_modis=$(( count_modis+1 ))
+	echo "WILL LINK: $path"
+    else
+	echo "EMPTY: $path"
+    fi
+done
+echo "Found $count_modis MODIS fire data files."
+set -x
+
+cd ../WFABBA
+
+set +x # This region is too verbose for "set -x"
+for path in \
+    "$BBEM_WFABBA_DIR_YESTERDAY/f$jul_yesterday"* \
+    "$BBEM_WFABBA_DIR_TODAY/f$jul_today"*
+do
+    if [ -s "$path" ] ; then
+        ln -s "$path" .
+        count_wfabba=$(( count_wfabba+1 ))
+	echo "WILL LINK: $path"
+    else
+	echo "EMPTY: $path"
+    fi
+done
+echo "Found $count_wfabba wf_abba data files."
+set -x
+
+cd ..
+
+if (( count_modis==0 )) ; then
+    echo "WARNING: NO MODIS FIRE DATA FOUND!" 1>&2
+fi
+
+if (( count_wfabba==0 )) ; then
+    echo "WARNING: NO WF_ABBA DATA FOUND!" 1>&2
+fi
+
+if (( count_wfabba==0 && count_modis==0 )) ; then
+    echo "WARNING: NO REAL-TIME DATA FOUND!  RESORTING TO STATIC DATA!" 1>&2
+fi
+
 cp -fp "$PARMchem/prep_chem_sources.inp.IN" .
 cat prep_chem_sources.inp.IN | sed \
-    "s:%HH%:$SHOUR:g                                  ;
-     s:%DD%:$SDAY:g                                   ;
-     s:%MM%:$SMONTH:g                                 ;
-     s:%YYYY%:$SYEAR:g                                ;
-     s:%FIXchem%:$FIXchem:g                           ;
-     s:%FIX_GRID_SPEC%:$FIX_GRID_SPEC:g               ;
-     s:%BBEM_WFABBA_DATA%:$BBEM_WFABBA_DATA:g         ;
-     s:%BBEM_MODIS_DATA%:$BBEM_MODIS_DATA:g           ;
+    "s:%HH%:$SHOUR:g                                             ;
+     s:%DD%:$SDAY:g                                              ;
+     s:%MM%:$SMONTH:g                                            ;
+     s:%YYYY%:$SYEAR:g                                           ;
+     s:%FIXchem%:$FIXchem:g                                      ;
+     s:%FIX_GRID_SPEC%:$FIX_GRID_SPEC:g                          ;
+     s:%BBEM_MODIS_DATA%:./MODIS/MODIS_C6_Global_MCD14DL_NRT_:g  ;
+     s:%BBEM_WFABBA_DATA%:./WFABBA/f:g                           ;
     " > prep_chem_sources.inp
 
 if ( cat prep_chem_sources.inp | grep % ) ; then
@@ -97,39 +158,45 @@ $PREP_CHEM_SOURCES_EXE
 
 inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
 
-for itile in $( seq 1 6 ) ; do
-    tiledir=tile$itile
-    pushd $tiledir
+if [[ "${SENDCOM:-YES}" == YES ]] ; then
+    for itile in $( seq 1 6 ) ; do
+        tiledir=tile$itile
+        pushd $tiledir
 
-    for inout in $inout_list ; do
         set +x # A line-by-line log is too verbose here:
-        if [[ $inout =~ (.*),(.*) ]] ; then
-            infile="${CASE}-T-${emiss_date}0000-${BASH_REMATCH[1]}.bin"
-            outfile=$( echo "$COMOUTchem/$CHEM_OUTPUT_FORMAT" | sed \
-                "s:%INPUT%:${BASH_REMATCH[2]}:g ;
-                 s:%TILE%:$itile:g" )
-        else
-            echo "Internal error: could not split \"$inout\" into two elements at a comma." 1>&2
-            exit 9
-        fi
+        for inout in $inout_list ; do
+            if [[ $inout =~ (.*),(.*) ]] ; then
+                local_name="${BASH_REMATCH[1]}"
+                comdir_name="${BASH_REMATCH[2]}"
+                infile="${CASE}-T-${emiss_date}0000-${local_name}.bin"
+                step1="$COMOUTchem/$CHEM_OUTPUT_FORMAT"
+                step2=${step1//%INPUT%/$comdir_name}
+                outfile=${step2//%TILE%/$itile}
+            else
+                echo "Internal error: could not split \"$inout\" into two elements at a comma." 1>&2
+                exit 9
+            fi
 
-        outdir=$( dirname "$outfile" )
-        outbase=$( basename "$outfile" )
-        randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
-        tempfile="$outdir/.tmp.$outbase.$randhex.part"
+            outdir=$( dirname "$outfile" )
+            outbase=$( basename "$outfile" )
+            randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
+            tempbase=".tmp.$outbase.$randhex.part"
+            tempfile="$outdir/$tempbase"
 
+            if [[ ! -d "$outdir" ]] ; then
+                echo "make directory $outdir" 1>&2
+                mkdir -p "$outdir"
+            fi
+            rm -f "$outfile"
+            echo "copy $infile => $tempfile" 1>&2
+            cp -fp "$infile" "$tempfile"
+            echo "rename $tempbase => $outbase in $outdir" 1>&2
+            mv -T -f "$tempfile" "$outfile"
+        done
         set -x
-
-        if [[ ! -d "$outdir" ]] ; then
-            mkdir -p "$outdir"
-        fi
-        rm -f "$outfile"
-        cp -fp "$infile" "$tempfile"
-        mv -T -f "$tempfile" "$outfile"
+        popd
     done
-
-    popd
-done
+fi
 
 echo 'Success!'
 echo 'Please enjoy your new tracers.'
