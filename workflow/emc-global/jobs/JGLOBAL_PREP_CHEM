@@ -6,7 +6,9 @@ set -xa
 export PS4='$SECONDS + '
 date
 
-export RUNMEM=$RUNMEM
+export RUNMEM=${RUNMEM:-gec00}
+# Default RUNMEM assumes chemistry is running for GEFS control.
+# For other models (ie. GFS), the RUNMEM is irrelevant.
 export mem=`echo $RUNMEM|cut -c3-5`
 export ENS_NUM=1
 echo "ENS_NUM=$ENS_NUM"
