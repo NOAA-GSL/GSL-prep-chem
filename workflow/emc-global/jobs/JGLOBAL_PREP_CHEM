@@ -79,10 +79,10 @@ export CHEM_OUTPUT_FORMAT=${CHEM_OUTPUT_FORMAT:-chem/gefs.$cycle.chem_%INPUT%.ti
 #export BBEM_WFABBA_DIR_TODAY=${BBEM_WFABBA_DIR_TODAY:-$DCOMROOT/us003007/$PDY/path/to/wf_abba}
 #export BBEM_WFABBA_DIR_YESTERDAY=${BBEM_WFABBA_DIR_YESTERDAY:-$DCOMROOT/us003007/$PDYm1/path/to/wf_abba}
 
-# These three lines abort the job if datasets' directories are invalid:
-test -d "$BBEM_MODIS_DIR_TODAY" -o -d "$BBEM_MODIS_DIR_YESTERDAY"
-test -d "$BBEM_WFABBA_DIR_TODAY" -o -d "$BBEM_WFABBA_DIR_YESTERDAY"
-test -d "$GBBEPX_DATA_DIR"
+# These three lines abort the job if dataset directories are invalid: 
+#test -d "$BBEM_MODIS_DIR_TODAY" -o -d "$BBEM_MODIS_DIR_YESTERDAY"
+#test -d "$BBEM_WFABBA_DIR_TODAY" -o -d "$BBEM_WFABBA_DIR_YESTERDAY"
+#test -d "$GBBEPX_DATA_DIR"
 
 ##############################################
 # Decide what we're running and how
@@ -92,8 +92,8 @@ export CASE=${CASE:-C384} # forecast model resolution
 
 export PREP_CHEM_SOURCES_EXE="$EXECchem/prep_chem_sources_RADM_FV3_SIMPLE.exe"
 if [[ -d /gpfs && -s /etc/SuSE-release ]] && ( which aprun ) ; then
-    # On CRAY in a batch job, the prep_chem_sources must be run via aprun:
-    PREP_CHEM_SOURCES_EXE="aprun -n 1 -j 1 $PREP_CHEM_SOURCES_EXE"
+   # On CRAY in a batch job, the prep_chem_sources must be run via aprun:
+   PREP_CHEM_SOURCES_EXE="aprun -n 1 -j 1 $PREP_CHEM_SOURCES_EXE"
 fi
 
 ##############################################
