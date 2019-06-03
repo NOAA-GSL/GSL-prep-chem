@@ -20,7 +20,7 @@ export cyc=${YYYYMMDDHH:8:2}
 export cycle=t${cyc}z
 
 # For test purposes, generate random com and nwtmp locations.  This
-# section would not be in the ecf file:
+# section would not be in the ecf file; they're defined in envir-*.h:
 randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
 testtop="$workarea"/test.$randhex
 export COMROOT=$testtop/com
@@ -41,6 +41,7 @@ export BBEM_MODIS_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISf
 export BBEM_MODIS_DIR_YESTERDAY=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global/
 export BBEM_WFABBA_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/
 export BBEM_WFABBA_DIR_YESTERDAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/
+export GBBEPX_DATA_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/grids/sdsu/emissions
 
 # Copy whichever of these is relevant into your ecf file.  Do NOT load
 # prod_util in your ecf file though; the head.h does that for you.
@@ -77,6 +78,7 @@ elif [ -d /scratch3 -a -d /scratch4 ] ; then
     export BBEM_WFABBA_DIR_YESTERDAY="$BBEM_WFABBA_DIR_TODAY"
     export BBEM_MODIS_DIR_TODAY=/scratch4/BMC/public/data/sat/firms/global/
     export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
+    export GBBEPX_DATA_DIR=/scratch4/BMC/public/data/grids/sdsu/emissions/
 fi
 
 # Name of this task in the ecflow suite:

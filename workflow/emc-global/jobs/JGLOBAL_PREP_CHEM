@@ -79,8 +79,10 @@ export CHEM_OUTPUT_FORMAT=${CHEM_OUTPUT_FORMAT:-chem/gefs.$cycle.chem_%INPUT%.ti
 #export BBEM_WFABBA_DIR_TODAY=${BBEM_WFABBA_DIR_TODAY:-$DCOMROOT/us003007/$PDY/path/to/wf_abba}
 #export BBEM_WFABBA_DIR_YESTERDAY=${BBEM_WFABBA_DIR_YESTERDAY:-$DCOMROOT/us003007/$PDYm1/path/to/wf_abba}
 
+# These three lines abort the job if datasets' directories are invalid:
 test -d "$BBEM_MODIS_DIR_TODAY" -o -d "$BBEM_MODIS_DIR_YESTERDAY"
 test -d "$BBEM_WFABBA_DIR_TODAY" -o -d "$BBEM_WFABBA_DIR_YESTERDAY"
+test -d "$GBBEPX_DATA_DIR"
 
 ##############################################
 # Decide what we're running and how

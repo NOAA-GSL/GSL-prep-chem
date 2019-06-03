@@ -28,6 +28,7 @@
 #   $BBEM_MODIS_DATA_DIR_YESTERDAY = directory with yesterday's modis fire data
 #   $BBEM_WFABBA_DATA_DIR_TODAY = directory with today's wf_abba data
 #   $BBEM_WFABBA_DATA_DIR_YESTERDAY = directory with yesterday's wf_abba data
+#   $GBBEPX_DATA_DIR = directory with today's GSCE GBBEPx data
 # (Each data source must have both today and yesterday directories specified, but
 # only one day per source must exist to run this script.)
 #
@@ -48,11 +49,11 @@
 
 set -xue
 
-if [ ! -d "$COMOUTchem" ] ; then
+if [[ ! -d "$COMOUTchem" ]] ; then
     mkdir -p "$COMOUTchem"
 fi
 
-if [ ! -d "$DATA" ] ; then
+if [[ ! -d "$DATA" ]] ; then
     mkdir -p "$DATA"
     cd "$DATA"
 fi
@@ -61,6 +62,7 @@ SYEAR="${SYEAR:-${PDY:0:4}}"
 SMONTH="${SMONTH:-${PDY:4:2}}"
 SDAY="${SDAY:-${PDY:6:2}}"
 SHOUR="${SHOUR:-$cyc}"
+PDY="${PDY:-$SYEAR$SMONTH$SDAY}"
 
 PREP_CHEM_SOURCES_EXE="${PREP_CHEM_SOURCES_EXE:-$EXECchem/prep_chem_sources_RADM_FV3_SIMPLE.exe}"
 
@@ -83,6 +85,10 @@ jul_yesterday=$( date -d "$SYEAR-$SMONTH-$SDAY 12:00:00 +0000 + -1 day" +%Y%j )
 
 count_modis=0
 count_wfabba=0
+count_gbbepx=0
+expect_gbbepx=0
+
+gbbepx_list="GBBEPx.bc GBBEPx.oc GBBEPx.so2 GBBEPx.pm25 meanFRP"
 
 cd MODIS
 
@@ -91,7 +97,7 @@ for path in \
     "$BBEM_MODIS_DIR_YESTERDAY/MODIS_C6_Global_MCD14DL_NRT_$jul_today"* \
     "$BBEM_MODIS_DIR_TODAY/MODIS_C6_Global_MCD14DL_NRT_$jul_yesterday"*
 do
-    if [ -s "$path" ] ; then
+    if [[ -s "$path" ]] ; then
         ln -s "$path" .
         count_modis=$(( count_modis+1 ))
 	echo "WILL LINK: $path"
@@ -109,7 +115,7 @@ for path in \
     "$BBEM_WFABBA_DIR_YESTERDAY/f$jul_yesterday"* \
     "$BBEM_WFABBA_DIR_TODAY/f$jul_today"*
 do
-    if [ -s "$path" ] ; then
+    if [[ -s "$path" ]] ; then
         ln -s "$path" .
         count_wfabba=$(( count_wfabba+1 ))
 	echo "WILL LINK: $path"
@@ -122,15 +128,34 @@ set -x
 
 cd ..
 
+set +x  # This region is too verbose for "set -x"
+for gbbepx_file in $gbbepx_list ; do
+    for itile in 1 2 3 4 5 6 ; do
+	tiledir=tile$itile
+	expect_gbbepx=$(( expect_gbbepx + 1 ))
+	infile="$GBBEPX_DATA_DIR/${PDY}.${gbbepx_file}.FV3.${CASE}Grid.$tiledir.bin"
+	if [[ -s "$infile" ]] ; then
+	    count_gbbepx=$(( count_gbbepx + 1 ))
+	fi
+    done
+done
+set -x
+
 if (( count_modis==0 )) ; then
     echo "WARNING: NO MODIS FIRE DATA FOUND!" 1>&2
+fi
+
+if (( count_gbbepx == 0 )) ; then
+    echo "WARNING: NO GBBEPX FILES FOUND!" 1>&2
+elif (( count_gbbepx!=expect_gbbepx )) ; then
+    echo "WARNING: EXPECTED $expect_gbbepx GBBEPX FILES BUT FOUND $count_gbbepx!  WILL NOT USE GBBEPX!" 1>&2
 fi
 
 if (( count_wfabba==0 )) ; then
     echo "WARNING: NO WF_ABBA DATA FOUND!" 1>&2
 fi
 
-if (( count_wfabba==0 && count_modis==0 )) ; then
+if (( count_wfabba==0 && count_modis==0 && count_gbbepx!=expect_gbbepx )) ; then
     echo "WARNING: NO REAL-TIME DATA FOUND!  RESORTING TO STATIC DATA!" 1>&2
 fi
 
@@ -156,10 +181,10 @@ fi
 $PREP_CHEM_SOURCES_EXE
 #
 
-inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
+inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl GBBEPx.bc,ebu_bc GBBEPx.oc,ebu_oc GBBEPx.so2,ebu_so2 GBBEPx.pm25,ebu_pm_25 meanFRP,plumefrp"
 
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
-    for itile in $( seq 1 6 ) ; do
+    for itile in 1 2 3 4 5 6 ; do
         tiledir=tile$itile
         pushd $tiledir
 
@@ -168,7 +193,25 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
             if [[ $inout =~ (.*),(.*) ]] ; then
                 local_name="${BASH_REMATCH[1]}"
                 comdir_name="${BASH_REMATCH[2]}"
-                infile="${CASE}-T-${emiss_date}0000-${local_name}.bin"
+
+		is_gbbepx_data=NO
+		for gdat in $gbbepx_list ; do
+		    if [[ "$gdat" == "$local_name" ]] ; then
+			is_gbbepx_data=YES
+			break
+		    fi
+		done
+
+		if [[ "$is_gbbepx_data" == YES ]] ; then
+		    if (( count_gbbepx != expect_gbbepx || count_gbbepx==0 )) ; then
+			# GBBEPX is disabled or the wrong number of
+			# files were found.  Don't use GBBEPX.
+			continue
+		    fi
+		    infile="$GBBEPX_DATA_DIR/${PDY}.${local_name}.FV3.${CASE}Grid.$tiledir.bin"
+		else
+                    infile="${CASE}-T-${emiss_date}0000-${local_name}.bin"
+		fi
                 step1="$COMOUTchem/$CHEM_OUTPUT_FORMAT"
                 step2=${step1//%INPUT%/$comdir_name}
                 outfile=${step2//%TILE%/$itile}
