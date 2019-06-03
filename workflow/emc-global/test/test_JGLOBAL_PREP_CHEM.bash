@@ -47,24 +47,28 @@ export GBBEPX_DATA_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/p
 # prod_util in your ecf file though; the head.h does that for you.
 if [ -d /ptmpp2 ] ; then
     # WCOSS Phase 1 and 2 need to load the compiler and libraries.
+    set +xu
     module load prod_util
     module load ics
     module load NetCDF/4.2/serial
     module load HDF5/1.8.9/serial
 elif [ -e /usrx ] && ( readlink /usrx | grep dell > /dev/null 2>&1 ) ; then
     # WCOSS Phase 3 prerequisites:
+    set +xu
     module load ips/18.0.1.163
     module load NetCDF/4.5.0
     module load HDF5-serial/1.10.1
     module load prod_util/1.1.1
 elif [ -s /etc/SuSE-release -a -e /usrx ] ; then
     # WCOSS Cray; assumes NO "module purge" was done:
+    set +xu
     module load intel
     module load NetCDF-intel-haswell/4.2
     module load HDF5-serial-intel-haswell/1.8.9
     module load prod_util
 elif [ -d /scratch3 -a -d /scratch4 ] ; then
     # Theia
+    set +xu
     module load intel
     module load hdf5/1.8.14
     module load netcdf/4.4.0
@@ -80,6 +84,8 @@ elif [ -d /scratch3 -a -d /scratch4 ] ; then
     export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
     export GBBEPX_DATA_DIR=/scratch4/BMC/public/data/grids/sdsu/emissions/
 fi
+
+set -xue
 
 # Name of this task in the ecflow suite:
 export job=jglobal_prep_chem
