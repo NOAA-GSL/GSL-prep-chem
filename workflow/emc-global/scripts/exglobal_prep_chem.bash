@@ -181,7 +181,7 @@ fi
 $PREP_CHEM_SOURCES_EXE
 #
 
-inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl GBBEPx.bc,gbbepx_ebu_bc GBBEPx.oc,gbbepx_ebu_oc GBBEPx.so2,gbbepx_ebu_so2 GBBEPx.pm25,gbbepx_ebu_pm_25 meanFRP,gbbepx_plumefrp"
+inout_list="plume,bbem.plumestuff OC-bb,bbem.ebu_oc BC-bb,bbem.ebu_bc BBURN2-bb,bbem.ebu_pm_25 BBURN3-bb,bbem.ebu_pm_10 SO2-bb,bbem.ebu_so2 SO4-bb,bbem.ebu_sulf ALD-bb,bbem.ebu_ald ASH-bb,bbem.ebu_ash.dat CO-bb,bbem.ebu_co CSL-bb,bbem.ebu_csl DMS-bb,bbem.ebu_dms ETH-bb,bbem.ebu_eth HC3-bb,bbem.ebu_hc3 HC5-bb,bbem.ebu_hc5 HC8-bb,bbem.ebu_hc8 HCHO-bb,bbem.ebu_hcho ISO-bb,bbem.ebu_iso KET-bb,bbem.ebu_ket NH3-bb,bbem.ebu_nh3 NO2-bb,bbem.ebu_no2 NO-bb,bbem.ebu_no OLI-bb,bbem.ebu_oli OLT-bb,bbem.ebu_olt ORA2-bb,bbem.ebu_ora2 TOL-bb,bbem.ebu_tol XYL-bb,bbem.ebu_xyl GBBEPx.bc,gbbepx.ebu_bc GBBEPx.oc,gbbepx.ebu_oc GBBEPx.so2,gbbepx.ebu_so2 GBBEPx.pm25,gbbepx.ebu_pm_25 meanFRP,gbbepx.plumefrp"
 
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
     for itile in 1 2 3 4 5 6 ; do
