@@ -41,7 +41,7 @@ export BBEM_MODIS_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISf
 export BBEM_MODIS_DIR_YESTERDAY=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/MODISfiredata/datafiles/FIRMS/c6/Global/
 export BBEM_WFABBA_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/
 export BBEM_WFABBA_DIR_YESTERDAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/sat/nesdis/wf_abba/
-export GBBEPX_DATA_DIR=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/grids/sdsu/emissions
+export GBBEPX_DATA_DIR=/dev/null # /gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/public/data/grids/sdsu/emissions
 
 # Copy whichever of these is relevant into your ecf file.  Do NOT load
 # prod_util in your ecf file though; the head.h does that for you.
@@ -96,3 +96,13 @@ export envir=para
 
 # This line must be in the ecf file; it passes control to the j-job:
 $HOMEchem/jobs/JGLOBAL_PREP_CHEM
+
+#######################################################################
+
+# Everything after this point belongs in the forecast job; it is here
+# just for test purposes.
+
+# These three lines doesn't go in the prep-chem job:
+mkdir "$DATAROOT/test-link-chem"
+cd "$DATAROOT/test-link-chem"
+$HOMEchem/ush/global_link_chem.bash $COMROOT/gens/para/gefs.$PDY/chem/gefs.t${cyc}z.chem_
