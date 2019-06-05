@@ -87,6 +87,7 @@ count_modis=0
 count_wfabba=0
 count_gbbepx=0
 expect_gbbepx=0
+use_gbbepx=NO
 
 gbbepx_list="GBBEPx.bc GBBEPx.oc GBBEPx.so2 GBBEPx.pm25 meanFRP"
 
@@ -147,8 +148,12 @@ fi
 
 if (( count_gbbepx == 0 )) ; then
     echo "WARNING: NO GBBEPX FILES FOUND!" 1>&2
+    use_gbbepx=NO
 elif (( count_gbbepx!=expect_gbbepx )) ; then
     echo "WARNING: EXPECTED $expect_gbbepx GBBEPX FILES BUT FOUND $count_gbbepx!  WILL NOT USE GBBEPX!" 1>&2
+    use_gbbepx=NO
+else
+    use_gbbepx=YES
 fi
 
 if (( count_wfabba==0 )) ; then
@@ -181,14 +186,19 @@ fi
 $PREP_CHEM_SOURCES_EXE
 #
 
-inout_list="plume,bbem.plumestuff OC-bb,bbem.ebu_oc BC-bb,bbem.ebu_bc BBURN2-bb,bbem.ebu_pm_25 BBURN3-bb,bbem.ebu_pm_10 SO2-bb,bbem.ebu_so2 SO4-bb,bbem.ebu_sulf ALD-bb,bbem.ebu_ald ASH-bb,bbem.ebu_ash.dat CO-bb,bbem.ebu_co CSL-bb,bbem.ebu_csl DMS-bb,bbem.ebu_dms ETH-bb,bbem.ebu_eth HC3-bb,bbem.ebu_hc3 HC5-bb,bbem.ebu_hc5 HC8-bb,bbem.ebu_hc8 HCHO-bb,bbem.ebu_hcho ISO-bb,bbem.ebu_iso KET-bb,bbem.ebu_ket NH3-bb,bbem.ebu_nh3 NO2-bb,bbem.ebu_no2 NO-bb,bbem.ebu_no OLI-bb,bbem.ebu_oli OLT-bb,bbem.ebu_olt ORA2-bb,bbem.ebu_ora2 TOL-bb,bbem.ebu_tol XYL-bb,bbem.ebu_xyl GBBEPx.bc,gbbepx.ebu_bc GBBEPx.oc,gbbepx.ebu_oc GBBEPx.so2,gbbepx.ebu_so2 GBBEPx.pm25,gbbepx.ebu_pm_25 meanFRP,gbbepx.plumefrp"
-
+if [[ "$use_gbbepx" == YES ]] ; then
+    inout_list="BBURN3-bb,ebu_pm_10 SO4-bb,ebu_sulf plume,plumestuff GBBEPx.bc,ebu_bc GBBEPx.oc,ebu_oc GBBEPx.so2,ebu_so2 GBBEPx.pm25,ebu_pm_25 meanFRP,plumefrp"
+else
+    inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"
+    #inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
+fi
+set -x
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
     for itile in 1 2 3 4 5 6 ; do
         tiledir=tile$itile
         pushd $tiledir
 
-        set +x # A line-by-line log is too verbose here:
+#        set +x # A line-by-line log is too verbose here:
         for inout in $inout_list ; do
             if [[ $inout =~ (.*),(.*) ]] ; then
                 local_name="${BASH_REMATCH[1]}"
@@ -203,7 +213,7 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
 		done
 
 		if [[ "$is_gbbepx_data" == YES ]] ; then
-		    if (( count_gbbepx != expect_gbbepx || count_gbbepx==0 )) ; then
+		    if [[ "$use_gbbepx" != YES ]] ; then
 			# GBBEPX is disabled or the wrong number of
 			# files were found.  Don't use GBBEPX.
 			continue
@@ -220,6 +230,7 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
                 exit 9
             fi
 
+	    set -ue
             outdir=$( dirname "$outfile" )
             outbase=$( basename "$outfile" )
             randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
