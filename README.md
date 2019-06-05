@@ -82,7 +82,7 @@ Apart from the usual NCEP environment variables, these additional ones are neede
   `workflow/emc-global/parm`
 * `$FIXchem` can be found in two locations
   * WCOSS Surge, Gyre, Venus: `/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/FIXchem/`
-  * RDHPCS Theia: `FIXME`
+  * RDHPCS Theia: `/scratch4/BMC/wrfruc/Samuel.Trahan/prep-chem/FIXchem`
 
 ### `prep_chem_sources_RADM_FV3_SIMPLE.exe`
 
@@ -152,15 +152,14 @@ A test script for `JGLOBAL_PREP_CHEM` and `global_link_chem.bash`.  Executed lik
     fix=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/FIXchem
     ./test_JGLOBAL_PREP_CHEM.bash 2019060100 "$scrub" "$fix"
 
-At the end of the script, you should see lines like these:
+When the script finishes, you should see lines like these describing
+the critical directories:
 
-    FIXME
+    Success!
+    EMISDIR: /scratch4/BMC/wrfruc/Samuel.Trahan/scrub/testchem/test.070d3bff/nwtmp/test-link-chem/EMISDIR
+    Chemistry COM: /scratch4/BMC/wrfruc/Samuel.Trahan/scrub/testchem/test.070d3bff/com
+    Scrub files: /scratch4/BMC/wrfruc/Samuel.Trahan/scrub/testchem/test.070d3bff/nwtmp
 
-This path:
-
-    FIXME
-
-contains a `com` directory structure and an `nwtest` directory with
-scrub space.  The final EMISDIR is in `test-link-chem/EMISDIR` within
-the nwtest directory.
-
+The final results are in the `Chemistry COM` directory, which contains
+output to COM from prep-chem, and the `EMISDIR`, which contains the
+input to the forecast job.
