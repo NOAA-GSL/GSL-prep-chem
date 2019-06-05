@@ -192,13 +192,13 @@ else
     inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"
     #inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
 fi
-set -x
+
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
     for itile in 1 2 3 4 5 6 ; do
         tiledir=tile$itile
         pushd $tiledir
 
-#        set +x # A line-by-line log is too verbose here:
+        set +x # A line-by-line log is too verbose here:
         for inout in $inout_list ; do
             if [[ $inout =~ (.*),(.*) ]] ; then
                 local_name="${BASH_REMATCH[1]}"
@@ -214,8 +214,6 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
 
 		if [[ "$is_gbbepx_data" == YES ]] ; then
 		    if [[ "$use_gbbepx" != YES ]] ; then
-			# GBBEPX is disabled or the wrong number of
-			# files were found.  Don't use GBBEPX.
 			continue
 		    fi
 		    infile="$GBBEPX_DATA_DIR/${PDY}.${local_name}.FV3.${CASE}Grid.$tiledir.bin"
