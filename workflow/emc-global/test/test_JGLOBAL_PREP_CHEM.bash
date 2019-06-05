@@ -106,3 +106,9 @@ $HOMEchem/jobs/JGLOBAL_PREP_CHEM
 mkdir "$DATAROOT/test-link-chem"
 cd "$DATAROOT/test-link-chem"
 $HOMEchem/ush/global_link_chem.bash $COMROOT/gens/para/gefs.$PDY/chem/gefs.t${cyc}z.chem_
+
+set +xue
+echo 'Success!'
+echo "EMISDIR: $DATAROOT/test-link-chem/EMISDIR"
+echo "Chemistry COM: $COMROOT"
+echo "Scrub files: $DATAROOT"
