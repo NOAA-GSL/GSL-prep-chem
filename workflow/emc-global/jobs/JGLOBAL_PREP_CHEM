@@ -67,8 +67,11 @@ export EXECchem=${EXECchem:-$HOMEchem/exec}
 export COMINchem=${COMINchem:-$COMROOT/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTchem=${COMOUTchem:-$COMINchem}
 
-#IMPLEMENTATION NOTE: The CHEM_OUTPUT_FORMAT will need to be changed
-#to match expected filename patterns.
+# The CHEM_OUTPUT_FORMAT sets the filenames of chemistry outputs in
+# $COMOUTchem.  This filename pattern must match the logic in
+# global_link_chem.bash.  The %INPUT% will be automatically replaced
+# by the input emission variable name and %TILE% by the FV3 tile
+# number.
 export CHEM_OUTPUT_FORMAT=${CHEM_OUTPUT_FORMAT:-chem/gefs.$cycle.chem_%INPUT%.tile%TILE%.dat}
 
 #IMPLEMENTATION NOTE: These four variables should be set in this
@@ -78,6 +81,10 @@ export CHEM_OUTPUT_FORMAT=${CHEM_OUTPUT_FORMAT:-chem/gefs.$cycle.chem_%INPUT%.ti
 #export BBEM_MODIS_DIR_YESTERDAY=${BBEM_MODIS_DIR_YESTERDAY:-$DCOMROOT/us003007/$PDYm1/path/to/modisfire}
 #export BBEM_WFABBA_DIR_TODAY=${BBEM_WFABBA_DIR_TODAY:-$DCOMROOT/us003007/$PDY/path/to/wf_abba}
 #export BBEM_WFABBA_DIR_YESTERDAY=${BBEM_WFABBA_DIR_YESTERDAY:-$DCOMROOT/us003007/$PDYm1/path/to/wf_abba}
+#export GBBEPX_DATA_DIR=${GBBEPX_DATA_DIR:-$DCOMROOT/us00307/$PDYm1/path/to/gbbepx/data}
+
+# Set a variable to an invalid path (like /dev/null) to disable that
+# data source.
 
 # These three lines abort the job if dataset directories are invalid: 
 #test -d "$BBEM_MODIS_DIR_TODAY" -o -d "$BBEM_MODIS_DIR_YESTERDAY"
