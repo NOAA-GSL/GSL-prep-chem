@@ -1,7 +1,7 @@
 # Define path and compilation 
 
 include paths.mk
-include include.mk.$(OPT)
+-include include.mk.$(OPT)
 
 # Compiler commands.
 
