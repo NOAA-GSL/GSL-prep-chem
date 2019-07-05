@@ -609,21 +609,42 @@ end Subroutine Matriz_interp
 !---------------------------------------------------------------------                  
  subroutine ge_to_xy(polelat,polelon,stdlat2,xlon,xlat,x,y)
 
- use grid_dims, only : pi180, r_earth
+     use grid_dims, only : pi180, r_earth
+      REAL, PARAMETER :: earth_radius= 6370000., truelat1= 60.0, stdlon=-135.0
+!
+
+! RAR: new domain
+      REAL, PARAMETER :: y0=-2.721013448835611e+06, x0= -1.477389760838135e+06
+
+      ! Local vars
+      REAL :: ala, alo, reflon, scale_top, rm
+
+      ! Executable code
+      reflon = stdlon + 90.
+      scale_top = 1. + sin(truelat1 * pi180)        ! Compute numerator term of map scale factor
+
+      ala = xlat* pi180
+      alo = (xlon - reflon) * pi180;
+
+      rm = earth_radius * cos(ala) * scale_top/(1. + sin(ala))
+      x= rm * cos(alo) - x0     ! distance from the center of the domain in south-north direction (latitude)
+      y= rm * sin(alo) - y0     ! distance from the center of the domain in west-east direction (longitude)
+
+! use grid_dims, only : pi180, r_earth
 
 !transformacao horizontal:
 
- b = 1.0+sin(pi180*xlat)*sin(pi180*polelat)+ &
-     cos(pi180*xlat)*cos(pi180*polelat)*cos(pi180*(xlon-polelon))
+! b = 1.0+sin(pi180*xlat)*sin(pi180*polelat)+ &
+!     cos(pi180*xlat)*cos(pi180*polelat)*cos(pi180*(xlon-polelon))
 
  ! f = 2.00*r_earth/b
- sctop = 1. + sin(abs(stdlat2) * pi180)
- f = sctop*r_earth/b
+! sctop = 1. + sin(abs(stdlat2) * pi180)
+! f = sctop*r_earth/b
 
- y = f*(cos(pi180*polelat)*sin(pi180*xlat) -                &
-     sin(pi180*polelat)*cos(pi180*xlat)*cos(pi180*(xlon-polelon)))
+! y = f*(cos(pi180*polelat)*sin(pi180*xlat) -                &
+!     sin(pi180*polelat)*cos(pi180*xlat)*cos(pi180*(xlon-polelon)))
      
- x = f*(cos(pi180*xlat)*sin(pi180*(xlon - polelon)))
+! x = f*(cos(pi180*xlat)*sin(pi180*(xlon - polelon)))
 
  !write( 16,*) ' X2: ',x, 'Y2: ',y,xlat,polelat
  
