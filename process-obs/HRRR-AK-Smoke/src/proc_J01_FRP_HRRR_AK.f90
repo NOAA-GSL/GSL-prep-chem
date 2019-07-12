@@ -65,7 +65,7 @@ IMPLICIT NONE
    REAL    :: delta    ! The model resolution in degrees
    REAL    :: lon, lat
    REAL(4) :: dday
-   LOGICAL, PARAMETER :: dbg=.false.
+   LOGICAL, PARAMETER :: dbg=.true.
 
 ! Input VIIRS data
    CALL GETARG(1,input_viirs)
@@ -196,7 +196,8 @@ jday:            IF ( MOD(yy,4)==0 )  THEN      ! leap year
                  ENDIF  jday
 
                  IF (yy<2010) THEN
-                    STOP 'wrong year!!!'
+                    write(0,*) 'wrong year!!!'
+                    stop 3
                  ENDIF
 
                  dyear= yy - 2010
@@ -343,7 +344,7 @@ jday:            IF ( MOD(yy,4)==0 )  THEN      ! leap year
 
             IF (dbg) THEN
                WRITE(*,*), 'lat_vi,lon_vi ',lat_vi,lon_vi
-               WRITE(*,*), 'x,y,ac_frp,ac_fsize,ac_day ',x,y,ac_frp,ac_fsize,ac_day
+               WRITE(*,*), 'x,y,ac_frp,ac_fsize,ac_day ',x,y,ac_frp(x,y),ac_fsize(x,y),ac_day(x,y)
             ENDIF
 
        ENDIF  check_loc
@@ -362,6 +363,7 @@ loop_lon:   DO x=1,a_cols
                   lon = -180.0 + (x-1)*delta
                   lat =   90.0 - (y-1)*delta
                   WRITE(22,700) lon, lat, ac_frp(x,y), ac_fsize(x,y), ac_parea(x,y), ac_day(x,y), cont(x,y)     !, julday
+                  write(0,*) '****OUTPUT TO: ',trim(output)
               ENDIF
             ENDDO    loop_lon
            ENDDO    loop_lat

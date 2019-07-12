@@ -55,7 +55,7 @@ PROGRAM FRE_BBM_AK      ! Total biomass that burnt in kg
     CALL getarg(1,input)
     IF(input.EQ.' ')THEN
     WRITE(*,*) 'Use: FRE_BBM_HRRR.exe <input frp daily file> <output file> <LULC> <BIOME>'
-          STOP
+          STOP 3
     ENDIF
     OPEN (21,file=input,status='old')
 
@@ -63,7 +63,7 @@ PROGRAM FRE_BBM_AK      ! Total biomass that burnt in kg
     CALL getarg(2,output)
     IF (output.EQ.' ') THEN
         WRITE(*,*) 'FRE_BBM_HRRR.exe <input frp daily file> <output file> <LULC> '
-        STOP
+        STOP 3
     ENDIF
     OPEN(22,file=output,status='replace')
 
