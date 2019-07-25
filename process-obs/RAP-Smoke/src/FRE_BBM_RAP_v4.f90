@@ -151,7 +151,13 @@ loop_frp:  DO WHILE (.TRUE.)
               posiy_biom = (nint((90.0-(lat))/resy_biom)) + 1         ! SN index of the grid cell
 
               igbp   = lulc(posix_lulc,posiy_lulc)
-              rbiome = lbiome(posix_biom,posiy_biom)
+
+              rbiome=0.
+              IF (posix_biom<biom_cols .AND. posiy_biom<biom_rows) THEN
+                  rbiome = lbiome(posix_biom,posiy_biom)
+              END IF
+
+              !WRITE(*,*) 'lat,lon,igbp,rbiome ',lat,lon,igbp,rbiome
 
 !RAR: new development is the separation of the Eastern temperate forest (array 2) and the rest of the North America (1)
 lu_sel:   SELECT CASE (INT(igbp))
