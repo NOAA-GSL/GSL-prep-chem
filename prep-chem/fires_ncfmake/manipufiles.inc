@@ -303,7 +303,7 @@ write(0,*) 'got here'
            if (attlen .gt. 1) then
               print*,att_name(1:40),": ",value_real
            else
-              write(6,'(A," : ",f12.4)') att_name(1:40),value_real(1)
+              write(6,'(A," : ",e12.4)') att_name(1:40),value_real(1)
            endif
            deallocate (value_real)
         endif
