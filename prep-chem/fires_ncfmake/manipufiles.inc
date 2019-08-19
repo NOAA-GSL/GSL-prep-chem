@@ -10,9 +10,9 @@ subroutine nferr_0_or_die(ierr,filename,action,variable,attribute)
   sad_bad_error: if(ierr/=0) then
      if(present(variable)) then
         if(present(attribute)) then
-           write(0,2022) trim(filename),trim(variable),trim(action),trim(nf_strerror(ierr)),ierr
-        else
            write(0,4044) trim(filename),trim(variable),trim(attribute),trim(action),trim(nf_strerror(ierr)),ierr
+        else
+           write(0,2022) trim(filename),trim(variable),trim(action),trim(nf_strerror(ierr)),ierr
         endif
      else
         write(0,3033) trim(filename),trim(action),trim(nf_strerror(ierr)),ierr
