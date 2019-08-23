@@ -7,35 +7,42 @@ program cycle_smoke
   character(len=:), pointer :: infile=>NULL()
   character(len=:), pointer :: outfile=>NULL()
   character(len=:), pointer :: varname=>NULL()
+  character(len=:), pointer :: opt=>NULL()
 
-  integer :: ncin, ncout
-  logical :: am_defining
+  integer :: ncin, ncout, arg1
+  logical :: am_defining, zero_data
   type(var_info), allocatable, dimension(:) :: from_vars, to_vars
 
   narg=command_argument_count()
 
+  zero_data=.false.
+  arg1=1
+
+  parse_args: do while(arg1<narg-1)
+     opt=>getarg(arg1)
+     arg1=arg1+1
+     if(opt=='--zero' .or. opt=='-0') then
+        zero_data=.true.
+     else if(opt=='--') then
+        exit parse_args
+     else if(opt(1:1)=='-') then
+        call usage(0,'unknown option "'//opt//'"')
+     else if(opt(1:1)/='-') then
+        arg1=arg1-1
+        exit parse_args
+     endif
+  end do parse_args
+
   if(narg<3) then
-     write(0,'(A)') 'Syntax: cycle_smoke varname [varname [...] ] infile.nc outfile.nc'
-     write(0,'(A)') 'Synopsis:'
-     write(0,'(A)') '  Will read specified variables from infile.nc and write to outfile.nc'
-     write(0,'(A)') '  Variables must already be defined in both files, and must have the'
-     write(0,'(A)') '  same type, dimension count, and dimension sizes.'
-     write(0,'(A)') 'Return status:'
-     write(0,'(A)') '  Program exits with status 0 on success, non-zero on failure.'
-     write(0,'(A)') '  Upon failure, variables before the failing variable have been written.'
-     stop 5
+     call usage(0,'you must specify an input file, an output file, and at least one variable')
   endif
 
   print 20,narg-2
-  call get_command_argument(number=narg-1,length=arglen)
-  allocate(character(len=arglen) :: infile)
-  call get_command_argument(number=narg-1,value=infile)
+  infile=>getarg(narg-1)
 
   print 13,infile,'read from this file'
 
-  call get_command_argument(number=narg,length=arglen)
-  allocate(character(len=arglen) :: outfile)
-  call get_command_argument(number=narg,value=outfile)
+  outfile=>getarg(narg)
 
   print 13,outfile,'write to this file'
 
@@ -45,10 +52,10 @@ program cycle_smoke
   allocate(to_vars(narg-2))
   am_defining=.false.
 
-  scan_and_define: do iarg=1,narg-2
-     call get_command_argument(number=iarg,length=arglen)
-     allocate(character(len=arglen) :: varname)
-     call get_command_argument(number=iarg,value=varname)
+  scan_and_define: do iarg=arg1,narg-2
+     varname=>getarg(iarg)
+
+     write(0,*) 'varname',varname
 
      if(.not.get_var_info(varname,infile,ncin,from_vars(iarg))) then
         write(0,13) infile,'no such variable: "'//varname//'"'
@@ -73,8 +80,12 @@ program cycle_smoke
      call stop_defining(outfile,ncout)
   endif
 
-  copy_data: do iarg=1,narg-2
+  copy_data: do iarg=arg1,narg-2
      call read_var(infile,ncin,from_vars(iarg))
+     if(zero_data) then
+        print 13,outfile,'will write zeros for: '//from_vars(iarg)%varname
+        call zero_var(from_vars(iarg))
+     endif
      call write_var(infile,from_vars(iarg), &
                     outfile,ncout,to_vars(iarg))
 
@@ -93,4 +104,45 @@ program cycle_smoke
 13 format(A,': ',A)
 19 format('Successful completion.  Wrote ',I0,' variable',A)
 20 format('Number of variables to read and write: ',I0)
+
+contains
+
+  function getarg(iarg) result(carg)
+    character(len=:), pointer :: carg
+    integer, intent(in) :: iarg
+    integer :: arglen
+
+    call get_command_argument(number=iarg,length=arglen)
+
+    allocate(character(len=arglen) :: carg)
+
+    call get_command_argument(number=iarg,value=carg)
+
+  end function getarg
+
+  subroutine usage(stream,why)
+    integer, intent(in) :: stream
+    character(len=*), optional, intent(in) :: why
+
+     write(stream,'(A)') 'Syntax: cycle_smoke [options] varname [varname [...] ] infile.nc outfile.nc'
+     write(stream,'(A)') 'Synopsis:'
+     write(stream,'(A)') '  Will read specified variables from infile.nc and write to outfile.nc'
+     write(stream,'(A)') '  Variables must already be defined in both files, and must have the'
+     write(stream,'(A)') '  same type, dimension count, and dimension sizes.'
+     write(stream,'(A)') 'Return status:'
+     write(stream,'(A)') '  Program exits with status 0 on success, non-zero on failure.'
+     write(stream,'(A)') '  Upon failure, variables before the failing variable have been written.'
+     write(stream,'(A)') 'Options:'
+     write(stream,'(A)') '  -zero or -0   =   fill variable with zeros'
+     write(stream,'(A)') '  --            =   terminate option parsing'
+
+     if(present(why)) then
+        write(stream,'(A)') ' '
+        write(stream,'(A)') trim(why)
+        stop 1
+     else
+        stop 0
+     endif
+   end subroutine usage
+
 end program cycle_smoke

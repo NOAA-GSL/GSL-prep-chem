@@ -168,7 +168,7 @@ contains
        call nferr_0_or_die(ierr=nf_put_var_int(ncout,to%varid,from%int), &
             action='nf_get_var_int',filename=trim(outfile),variable=from%varname)
     case(NF_REAL)
-       call nferr_0_or_die(ierr=nf_get_var_real(ncout,to%varid,from%real), &
+       call nferr_0_or_die(ierr=nf_put_var_real(ncout,to%varid,from%real), &
             action='nf_get_var_real',filename=trim(outfile),variable=from%varname)
     case DEFAULT
        write(0,3033) trim(infile),from%varname,"only 4-byte integer and real datatypes are supported"
@@ -177,4 +177,19 @@ contains
 3033 format('ABORT: ',A,': ',A,': ',A)
   end subroutine write_var
   
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine zero_var(info)
+    implicit none
+    include 'netcdf.inc'
+    type(var_info), intent(inout) :: info
+
+    if(allocated(info%real)) then
+       info%real=0.0
+    endif
+    if(allocated(info%int)) then
+       info%int=0
+    endif
+  end subroutine zero_var
+
 end module module_var_info
