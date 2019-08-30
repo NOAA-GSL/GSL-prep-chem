@@ -112,11 +112,12 @@ program qc_modis
 
 101 continue ! Error handling for IO error on header
   write(0,'(A,I0)') 'Unable to read header from input: iostat=',ios
-  stop 1
+  stop 0
 
 200 continue ! Error handling for IO error on data lines
   write(0,'(A,I0)') 'Error reading from input: iostat=',ios
-  stop 2
+  write(0,210) nread,nwrote,nread-nwrote
+  stop 0
 
 201 continue ! EOF on stdin for data lines; normal exit
 210 format("Data lines: read ",I0," wrote ",I0," discarded ",I0)
