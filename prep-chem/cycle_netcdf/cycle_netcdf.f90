@@ -1,6 +1,7 @@
 program cycle_smoke
   use module_io
   use module_var_info
+  use module_error, only: verbose
   implicit none
 
   integer :: narg, iarg, arglen
@@ -9,20 +10,25 @@ program cycle_smoke
   character(len=:), pointer :: varname=>NULL()
   character(len=:), pointer :: opt=>NULL()
 
-  integer :: ncin, ncout, arg1
-  logical :: am_defining, zero_data
+  integer :: ncin, ncout, arg1, nwrite, nskip
+  logical :: am_defining, zero_data, skip_unknown
   type(var_info), allocatable, dimension(:) :: from_vars, to_vars
 
   narg=command_argument_count()
 
+  skip_unknown=.false.
   zero_data=.false.
   arg1=1
 
   parse_args: do while(arg1<narg-1)
      opt=>getarg(arg1)
      arg1=arg1+1
-     if(opt=='--zero' .or. opt=='-0') then
+     if(opt=='--zero' .or. opt=='-z') then
         zero_data=.true.
+     else if(opt=='--skip-unknown' .or. opt=='-u') then
+        skip_unknown=.true.
+     else if(opt=='--verbose' .or. opt=='-v') then
+        verbose=.true.
      else if(opt=='--') then
         exit parse_args
      else if(opt(1:1)=='-') then
@@ -55,11 +61,13 @@ program cycle_smoke
   scan_and_define: do iarg=arg1,narg-2
      varname=>getarg(iarg)
 
-     write(0,*) 'varname',varname
-
      if(.not.get_var_info(varname,infile,ncin,from_vars(iarg))) then
         write(0,13) infile,'no such variable: "'//varname//'"'
-        stop 4
+        if(skip_unknown) then
+           cycle scan_and_define
+        else
+           stop 4
+        endif
      endif
 
      if(.not.get_var_info(varname,outfile,ncout,to_vars(iarg))) then
@@ -80,7 +88,16 @@ program cycle_smoke
      call stop_defining(outfile,ncout)
   endif
 
+  nwrite=0
+  nskip=0
+
   copy_data: do iarg=arg1,narg-2
+     if(from_vars(iarg)%ndims<0) then
+        ! Variable was never read.
+        nskip=nskip+1
+        cycle copy_data
+     endif
+     nwrite=nwrite+1
      call read_var(infile,ncin,from_vars(iarg))
      if(zero_data) then
         print 13,outfile,'will write zeros for: '//from_vars(iarg)%varname
@@ -95,14 +112,14 @@ program cycle_smoke
 
   call close_files(infile,outfile,ncin,ncout)
 
-  if(narg>3) then
-     print 19,narg-2,'s.'
+  if(nwrite>1) then
+     print 19,nwrite,'s,',nskip
   else
-     print 19,narg-2,'.'
+     print 19,nwrite,',', nskip
   endif
 
 13 format(A,': ',A)
-19 format('Successful completion.  Wrote ',I0,' variable',A)
+19 format('Successful completion.  Wrote ',I0,' variable',A,' skipped ',I0,'.')
 20 format('Number of variables to read and write: ',I0)
 
 contains
@@ -133,8 +150,12 @@ contains
      write(stream,'(A)') '  Program exits with status 0 on success, non-zero on failure.'
      write(stream,'(A)') '  Upon failure, variables before the failing variable have been written.'
      write(stream,'(A)') 'Options:'
-     write(stream,'(A)') '  -zero or -0   =   fill variable with zeros'
-     write(stream,'(A)') '  --            =   terminate option parsing'
+     write(stream,'(A)') '  -z or --zero         = write zeros instead of original data'
+     write(stream,'(A)') '  -v or --verbose      = print every successful netcdf call'
+     write(stream,'(A)') '  -u or --skip-unknown = if infile.nc lacks a variable, skip the '
+     write(stream,'(A)') '                         variable instead of aborting.'
+     write(stream,'(A)') '  --                   = later arguments are not -options even if they'
+     write(stream,'(A)') '                         start with a "-"'
 
      if(present(why)) then
         write(stream,'(A)') ' '

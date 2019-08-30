@@ -1,5 +1,8 @@
 module module_error
+  implicit none
+  logical :: verbose = .false.
 contains
+
   subroutine nferr_0_or_die(ierr,filename,action,variable,attribute)
     implicit none
 
@@ -20,7 +23,7 @@ contains
           write(0,3033) trim(filename),trim(action),trim(nf_strerror(ierr)),ierr
        endif
        stop 4
-    else
+    else if(verbose) then
        if(present(variable)) then
           if(present(attribute)) then
              write(0,1044) trim(filename),trim(variable),trim(attribute),trim(action)
