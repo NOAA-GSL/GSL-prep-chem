@@ -89,7 +89,7 @@ count_gbbepx=0
 expect_gbbepx=0
 use_gbbepx=NO
 
-gbbepx_list="GBBEPx.bc GBBEPx.oc GBBEPx.so2 GBBEPx.pm25 meanFRP"
+gbbepx_list=${gbbepx_list:-"GBBEPx.emis_BC GBBEPx.emis_OC GBBEPx.emis_SO2 GBBEPx.emis_PM2.5 GBBEPx.FRP"}
 
 cd MODIS
 
@@ -129,18 +129,31 @@ set -x
 
 cd ..
 
-set +x  # This region is too verbose for "set -x"
-for gbbepx_file in $gbbepx_list ; do
-    for itile in 1 2 3 4 5 6 ; do
-	tiledir=tile$itile
-	expect_gbbepx=$(( expect_gbbepx + 1 ))
-	infile="$GBBEPX_DATA_DIR/${PDY}.${gbbepx_file}.FV3.${CASE}Grid.$tiledir.bin"
-	if [[ -s "$infile" ]] ; then
-	    count_gbbepx=$(( count_gbbepx + 1 ))
-	fi
+# Any variables have to be exported to the environment before substitution
+gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${gbbepx_file}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
+for day in $PDY $PDYm1 $PDYm2; do
+    set +x  # This region is too verbose for "set -x"
+    export day
+    expect_gbbepx=0
+    count_gbbepx=0
+    for gbbepx_file in $gbbepx_list ; do
+        export gbbepx_file
+        for itile in 1 2 3 4 5 6 ; do
+        	export tiledir=tile$itile
+        	export expect_gbbepx=$(( expect_gbbepx + 1 ))
+            infile=$(env envsubst <<< $gbbepx_pattern)
+        	if [[ -s "$infile" ]] ; then
+        	    count_gbbepx=$(( count_gbbepx + 1 ))
+        	fi
+        done
     done
+    if (( count_gbbepx==expect_gbbepx )); then
+        # We have all the GBBEPX files
+        echo "GBBEPX files found for $day"
+        break
+    fi
+    set -x
 done
-set -x
 
 if (( count_modis==0 )) ; then
     echo "WARNING: NO MODIS FIRE DATA FOUND!" 1>&2
@@ -187,9 +200,9 @@ $PREP_CHEM_SOURCES_EXE
 #
 
 if [[ "$use_gbbepx" == YES ]] ; then
-    inout_list="BBURN3-bb,ebu_pm_10 SO4-bb,ebu_sulf plume,plumestuff GBBEPx.bc,ebu_bc GBBEPx.oc,ebu_oc GBBEPx.so2,ebu_so2 GBBEPx.pm25,ebu_pm_25 meanFRP,plumefrp"
+    inout_list=${inout_list:-"BBURN3-bb,ebu_pm_10 SO4-bb,ebu_sulf plume,plumestuff GBBEPx.emis_BC,ebu_bc GBBEPx.emis_OC,ebu_oc GBBEPx.emis_SO2,ebu_so2 GBBEPx.emis_PM2.5,ebu_pm_25 GBBEPx.FRP,plumefrp"}
 else
-    inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"
+    inout_list=${inoout_list:-"plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"}
     #inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
 fi
 
@@ -216,7 +229,8 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
 		    if [[ "$use_gbbepx" != YES ]] ; then
 			continue
 		    fi
-		    infile="$GBBEPX_DATA_DIR/${PDY}.${local_name}.FV3.${CASE}Grid.$tiledir.bin"
+		    infile=$(env envsubst <<< $gbbepx_pattern)
+
 		else
                     infile="${CASE}-T-${emiss_date}0000-${local_name}.bin"
 		fi
