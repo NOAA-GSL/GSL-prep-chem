@@ -131,7 +131,9 @@ cd ..
 
 # Any variables have to be exported to the environment before substitution
 gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
-for day in $PDY $PDYm1 $PDYm2; do
+export gbbepx_days=${gbbepx_days:-'$PDY $PDYm1 $PDYm2'}
+gbbepx_days=$(env envsubst <<< $gbbepx_days)
+for day in $gbbepx_days; do
     set +x  # This region is too verbose for "set -x"
     export day
     expect_gbbepx=0
