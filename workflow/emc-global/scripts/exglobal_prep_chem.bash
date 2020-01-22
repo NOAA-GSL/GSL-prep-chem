@@ -130,14 +130,14 @@ set -x
 cd ..
 
 # Any variables have to be exported to the environment before substitution
-gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${gbbepx_file}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
+gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
 for day in $PDY $PDYm1 $PDYm2; do
     set +x  # This region is too verbose for "set -x"
     export day
     expect_gbbepx=0
     count_gbbepx=0
-    for gbbepx_file in $gbbepx_list ; do
-        export gbbepx_file
+    for local_name in $gbbepx_list ; do
+        export local_name
         for itile in 1 2 3 4 5 6 ; do
         	export tiledir=tile$itile
         	export expect_gbbepx=$(( expect_gbbepx + 1 ))
@@ -229,6 +229,7 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
 		    if [[ "$use_gbbepx" != YES ]] ; then
 			continue
 		    fi
+            export local_name
 		    infile=$(env envsubst <<< $gbbepx_pattern)
 
 		else
