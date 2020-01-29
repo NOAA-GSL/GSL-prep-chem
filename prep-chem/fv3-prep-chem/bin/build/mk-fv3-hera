@@ -1,0 +1,8 @@
+#make OPT=pgi.fim CHEM=RADM_WRF_FIM AER=SIMPLE $1
+set -e
+module load intel/18.0.5.274
+module load hdf5/1.10.5
+module load netcdf/4.7.0
+module list
+#env
+make OPT=intel.fv3 CHEM=RADM_FV3 $1
