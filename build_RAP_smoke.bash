@@ -21,6 +21,13 @@ if [[ -d /lfs1 ]] ; then
     module load szip
     module load hdf5
     module load netcdf
+elif [[ -d /scratch1 ]] ; then
+    where=hera
+    module purge
+    module load intel
+    module load szip
+    module load hdf5
+    module load netcdf
 else
     # Assume WCOSS Cray
     where=wcoss_cray
@@ -34,7 +41,9 @@ set -xu
 pushd prep-chem/fires_ncfmake/
 make clean
 if [[ "$where" == jet ]] ; then
-    ./mk-fv3-jet
+    ./mk-wrf-jet
+elif [[ "$where" == hera ]] ; then
+    ./mk-wrf-hera
 else
     ./mk-wrf-wcoss-cray
 fi
@@ -43,8 +52,8 @@ popd
 
 pushd prep-chem/Prep_smoke_FRP/bin/build/
 make clean
-if [[ "$where" == jet ]] ; then
-    ./mk-fv3
+if [[ "$where" == jet || "$where" == hera ]] ; then
+    ./mk-wrf
 else
     ./mk-wrf-wcoss
 fi
