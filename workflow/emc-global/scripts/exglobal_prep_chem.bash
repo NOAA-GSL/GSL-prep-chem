@@ -101,9 +101,9 @@ do
     if [[ -s "$path" ]] ; then
         ln -s "$path" .
         count_modis=$(( count_modis+1 ))
-	echo "WILL LINK: $path"
+        echo "WILL LINK: $path"
     else
-	echo "EMPTY: $path"
+        echo "EMPTY: $path"
     fi
 done
 echo "Found $count_modis MODIS fire data files."
@@ -119,9 +119,9 @@ do
     if [[ -s "$path" ]] ; then
         ln -s "$path" .
         count_wfabba=$(( count_wfabba+1 ))
-	echo "WILL LINK: $path"
+        echo "WILL LINK: $path"
     else
-	echo "EMPTY: $path"
+        echo "EMPTY: $path"
     fi
 done
 echo "Found $count_wfabba wf_abba data files."
@@ -141,12 +141,12 @@ for day in $gbbepx_days; do
     for local_name in $gbbepx_list ; do
         export local_name
         for itile in 1 2 3 4 5 6 ; do
-        	export tiledir=tile$itile
-        	export expect_gbbepx=$(( expect_gbbepx + 1 ))
+            export tiledir=tile$itile
+            export expect_gbbepx=$(( expect_gbbepx + 1 ))
             infile=$(env envsubst <<< $gbbepx_pattern)
-        	if [[ -s "$infile" ]] ; then
-        	    count_gbbepx=$(( count_gbbepx + 1 ))
-        	fi
+            if [[ -s "$infile" ]] ; then
+                count_gbbepx=$(( count_gbbepx + 1 ))
+            fi
         done
     done
     if (( count_gbbepx==expect_gbbepx )); then
@@ -219,24 +219,24 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
                 local_name="${BASH_REMATCH[1]}"
                 comdir_name="${BASH_REMATCH[2]}"
 
-		is_gbbepx_data=NO
-		for gdat in $gbbepx_list ; do
-		    if [[ "$gdat" == "$local_name" ]] ; then
-			is_gbbepx_data=YES
-			break
-		    fi
-		done
+                is_gbbepx_data=NO
+                for gdat in $gbbepx_list ; do
+                    if [[ "$gdat" == "$local_name" ]] ; then
+                        is_gbbepx_data=YES
+                        break
+                    fi
+                done
 
-		if [[ "$is_gbbepx_data" == YES ]] ; then
-		    if [[ "$use_gbbepx" != YES ]] ; then
-			continue
-		    fi
-            export local_name
-		    infile=$(env envsubst <<< $gbbepx_pattern)
+                if [[ "$is_gbbepx_data" == YES ]] ; then
+                    if [[ "$use_gbbepx" != YES ]] ; then
+                        continue
+                    fi
+                    export local_name
+                    infile=$(env envsubst <<< $gbbepx_pattern)
 
-		else
+                else
                     infile="${CASE}-T-${emiss_date}0000-${local_name}.bin"
-		fi
+                fi
                 step1="$COMOUTchem/$CHEM_OUTPUT_FORMAT"
                 step2=${step1//%INPUT%/$comdir_name}
                 outfile=${step2//%TILE%/$itile}
@@ -245,7 +245,7 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
                 exit 9
             fi
 
-	    set -ue
+            set -ue
             outdir=$( dirname "$outfile" )
             outbase=$( basename "$outfile" )
             randhex=$( printf '%02x%02x%02x%02x' $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) $(( RANDOM%256 )) )
