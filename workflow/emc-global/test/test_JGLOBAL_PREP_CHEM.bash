@@ -66,23 +66,24 @@ elif [ -s /etc/SuSE-release -a -e /usrx ] ; then
     module load NetCDF-intel-haswell/4.2
     module load HDF5-serial-intel-haswell/1.8.9
     module load prod_util
-elif [ -d /scratch3 -a -d /scratch4 ] ; then
-    # Theia
+elif [ -d /scratch1 -a -d /scratch2 ] ; then
+    # Hera
     set +xu
-    module load intel
-    module load hdf5/1.8.14
-    module load netcdf/4.4.0
+    # Should match prep-chem/fv3-prep-chem/bin/build/mk-fv3-hera
+    module load intel/18.0.5.274
+    module load hdf5/1.10.5
+    module load netcdf/4.7.0
 
     # Have to get prod_util from a dev area:
-    module use /scratch4/NCEPDEV/nems/noscrub/emc.nemspara/soft/modulefiles/
+    module use /scratch2/NCEPDEV/nwprod/NCEPLIBS/modulefiles/
     module load prod_util
 
     # Different data area:
-    export BBEM_WFABBA_DIR_TODAY=/scratch4/BMC/public/data/sat/nesdis/wf_abba/
+    export BBEM_WFABBA_DIR_TODAY=/scratch2/BMC/public/data/sat/nesdis/wf_abba/
     export BBEM_WFABBA_DIR_YESTERDAY="$BBEM_WFABBA_DIR_TODAY"
-    export BBEM_MODIS_DIR_TODAY=/scratch4/BMC/public/data/sat/firms/global/
+    export BBEM_MODIS_DIR_TODAY=/scratch2/BMC/public/data/sat/firms/global/
     export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
-    export GBBEPX_DATA_DIR=/scratch4/BMC/public/data/grids/sdsu/emissions/
+    export GBBEPX_DATA_DIR=/scratch2/BMC/public/data/grids/sdsu/emissions/
 fi
 
 set -xue
