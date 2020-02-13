@@ -37,11 +37,11 @@ cd "$testtop"
 # Here, we use hard-coded dev areas for data.  Instead, the
 # JGLOBAL_PREP_CHEM should be updated with the dcom locations, and
 # these lines should be deleted:
-export BBEM_MODIS_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/sat-firms-global
+export BBEM_MODIS_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/TEST_DATA/BBEM_MODIS_DIR/
 export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
-export BBEM_WFABBA_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Sudhir.Nadiga/DCOMDIR/WFABBA/prod/wf_abba
+export BBEM_WFABBA_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/TEST_DATA/BBEM_WFABBA_DIR/
 export BBEM_WFABBA_DIR_YESTERDAY="$BBEM_WFABBA_DIR_TODAY"
-export GBBEPX_DATA_DIR=/gpfs/dell1/nco/ops/dcom/dev/20200106/firewx
+export GBBEPX_DATA_DIR=/gpfs/dell1/nco/ops/dcom/dev/${YYYYMMDDHH:0:8}/firewx
 
 # Copy whichever of these is relevant into your ecf file.  Do NOT load
 # prod_util in your ecf file though; the head.h does that for you.
