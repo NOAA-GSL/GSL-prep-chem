@@ -50,6 +50,19 @@ fi
 cp -fp "fires_ncfmake.x" $EXEChrrr/hrrr_fires_ncfmake
 popd
 
+pushd prep-chem/cycle_netcdf/
+make clean
+if [[ "$where" == jet ]] ; then
+    ./mk-wrf-jet
+elif [[ "$where" == hera ]] ; then
+    ./mk-wrf-hera
+else
+    ./mk-wrf-wcoss-cray
+fi
+cp -fp "cycle_netcdf.x" $EXEChrrr/cycle_netcdf.exe
+popd
+
+
 pushd prep-chem/Prep_smoke_FRP/bin/build/
 make clean
 if [[ "$where" == jet || "$where" == hera ]] ; then
