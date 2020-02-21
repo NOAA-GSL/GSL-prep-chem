@@ -1,0 +1,20 @@
+#! /bin/sh
+set -e
+
+module purge
+module load intel/18.0.5.274
+module load impi/2018.0.4
+module load netcdf/4.6.1
+module load pnetcdf/1.10.0
+module load nco/4.7.0
+module load cnvgrib/1.4.0
+module load szip/2.1
+module load hdf5/1.10.4
+
+
+make \
+  'FC=ifort' \
+  'FFLAGS=-g -C -free -I$(NETCDF)/include -I. -convert big_endian' \
+  'LDFLAGS=-convert big_endian' \
+  'LIBS=-L$(NETCDF)/lib -lnetcdff -L$(NETCDF)/lib -L$(HDF5)/lib -L$(SZIP)/lib -lnetcdf -lnetcdf -lhdf5_hl -lhdf5'" $SZIP_LINK_OPTS" \
+  clean all
