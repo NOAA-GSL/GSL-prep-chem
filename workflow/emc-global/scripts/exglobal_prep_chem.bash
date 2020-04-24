@@ -134,12 +134,13 @@ cd ..
 
 # Any variables have to be exported to the environment before substitution
 if [[ $SHOUR == 00 ]] ; then
-    gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR_YESTERDAY/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
+    GBBEPX_DATA_DIR=$GBBEPX_DATA_DIR_YESTERDAY
     export gbbepx_days=${gbbepx_days:-'$PDYm2 $PDYm3'}
 else
-    gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR_TODAY/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
+    GBBEPX_DATA_DIR=$GBBEPX_DATA_DIR_TODAY    
     export gbbepx_days=${gbbepx_days:-'$PDYm1 $PDYm2'}
 fi
+gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
 gbbepx_days=$(env envsubst <<< $gbbepx_days)
 for day in $gbbepx_days; do
     set -x  # This region is too verbose for "set -x"
