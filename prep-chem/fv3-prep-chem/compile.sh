@@ -2,10 +2,10 @@
 
 cd bin/build
 
-if [[ -d /scratch3 && -d /scratch4 ]] ; then
-    # assume Theia
+if [[ -d /scratch1 && -d /scratch2 ]] ; then
+    # assume Hera
     make clean
-    ./mk-fv3-theia
+    ./mk-fv3-hera
 elif [[ -d /ptmpp1 ]] ; then
     # WCOSS Phase 1 or 2
     make clean

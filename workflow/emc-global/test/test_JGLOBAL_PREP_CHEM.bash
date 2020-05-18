@@ -41,7 +41,11 @@ export BBEM_MODIS_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_c
 export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
 export BBEM_WFABBA_DIR_TODAY=/gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/TEST_DATA/BBEM_WFABBA_DIR/
 export BBEM_WFABBA_DIR_YESTERDAY="$BBEM_WFABBA_DIR_TODAY"
-export GBBEPX_DATA_DIR=/gpfs/dell1/nco/ops/dcom/dev/${YYYYMMDDHH:0:8}/firewx
+export GBBEPX_DATA_DIR_YESTERDAY=/gpfs/dell1/nco/ops/dcom/dev/${YYYYMMDDHH:0:8}/firewx
+export GBBEPX_DATA_DIR_TODAY=/gpfs/dell1/nco/ops/dcom/dev/${YYYYMMDDHH:0:8}/firewx
+
+export gbbepx_list="GBBEPx.emis_BC GBBEPx.emis_OC GBBEPx.emis_SO2 GBBEPx.emis_PM25 GBBEPx.FRP"
+export inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"
 
 # Copy whichever of these is relevant into your ecf file.  Do NOT load
 # prod_util in your ecf file though; the head.h does that for you.
@@ -83,7 +87,8 @@ elif [ -d /scratch1 -a -d /scratch2 ] ; then
     export BBEM_WFABBA_DIR_YESTERDAY="$BBEM_WFABBA_DIR_TODAY"
     export BBEM_MODIS_DIR_TODAY=/scratch2/BMC/public/data/sat/firms/global/
     export BBEM_MODIS_DIR_YESTERDAY="$BBEM_MODIS_DIR_TODAY"
-    export GBBEPX_DATA_DIR=/scratch2/BMC/public/data/grids/sdsu/emissions/
+    export GBBEPX_DATA_DIR_TODAY=/scratch2/BMC/wrfruc/Samuel.Trahan/prep-chem/gbbepx-20200429/
+    export GBBEPX_DATA_DIR_YESTERDAY="$GBBEPX_DATA_DIR_TODAY"
 fi
 
 set -xue

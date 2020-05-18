@@ -28,7 +28,8 @@
 #   $BBEM_MODIS_DATA_DIR_YESTERDAY = directory with yesterday's modis fire data
 #   $BBEM_WFABBA_DATA_DIR_TODAY = directory with today's wf_abba data
 #   $BBEM_WFABBA_DATA_DIR_YESTERDAY = directory with yesterday's wf_abba data
-#   $GBBEPX_DATA_DIR = directory with today's GSCE GBBEPx data
+#   $GBBEPX_DATA_DIR_TODAY = directory with today's GSCE GBBEPx data
+#   $GBBEPX_DATA_DIR_YESTERDAY = directory with yesterday's GSCE GBBEPx data
 # (Each data source must have both today and yesterday directories specified, but
 # only one day per source must exist to run this script.)
 #
@@ -130,11 +131,17 @@ set -x
 cd ..
 
 # Any variables have to be exported to the environment before substitution
+if [[ $SHOUR == 00 ]] ; then
+    export GBBEPX_DATA_DIR=$GBBEPX_DATA_DIR_YESTERDAY
+    export gbbepx_days=${gbbepx_days:-'$PDYm2 $PDYm3'}
+else
+    export GBBEPX_DATA_DIR=$GBBEPX_DATA_DIR_TODAY    
+    export gbbepx_days=${gbbepx_days:-'$PDYm1 $PDYm2'}
+fi
 gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
-export gbbepx_days=${gbbepx_days:-'$PDY $PDYm1 $PDYm2'}
 gbbepx_days=$(env envsubst <<< $gbbepx_days)
 for day in $gbbepx_days; do
-    set +x  # This region is too verbose for "set -x"
+    set -x  # This region is too verbose for "set -x"
     export day
     expect_gbbepx=0
     count_gbbepx=0
@@ -151,7 +158,7 @@ for day in $gbbepx_days; do
     done
     if (( count_gbbepx==expect_gbbepx )); then
         # We have all the GBBEPX files
-        echo "GBBEPX files found for $day"
+        echo "For $PDY $SHOUR GBBEPX files found for $day at $gbbepx_pattern"
         break
     fi
     set -x
