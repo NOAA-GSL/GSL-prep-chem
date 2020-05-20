@@ -118,9 +118,11 @@ for path in \
     "$BBEM_WFABBA_DIR_TODAY/f$jul_today"*
 do
     if [[ -s "$path" ]] ; then
-        ln -s "$path" .
+        # ln -s "$path" .
         count_wfabba=$(( count_wfabba+1 ))
-        echo "WILL LINK: $path"
+        # echo "WILL LINK: $path"
+        echo "WILL COPY: $path"
+        sed -e 's/\*\{5\}/  -9./' $path > ./$(basename $path)
     else
         echo "EMPTY: $path"
     fi
