@@ -554,12 +554,12 @@ character*2 ivegc
 nlinhas = 5
 
 ! read the header file and determines the time of fire ocurrence
-!do i=1,3
-!read(iunit,'(a120)',end=110) dum(i)
-!  write(11,'(a120)') dum
-!enddo
-!read(iunit,*,end=110) dum(4), idate_abba, dum(5),itime_abba
-!print*,dum(4), idate_abba, dum(5),itime_abba
+do i=1,3
+ read(iunit,'(a120)',end=110) dum(i)
+ write(11,'(a120)') dum
+enddo
+read(iunit,*,end=110) dum(4), idate_abba, dum(5),itime_abba
+! print*,dum(4), idate_abba, dum(5),itime_abba
 read(iunit,*,end=110) dum(5)
 
 
@@ -569,17 +569,17 @@ do i=1,n
  ic=ic+1
  !srf- new version of W_ABBA fire product
  !MZ: fixed the reading of W_ABBA headers (now generic).
- !if ( index(dum(2), 'WF_ABBA') .ne. 0 ) then
-   !if ( index(dum(2), ' 6.5') .ne. 0) then
+ if ( index(dum(2), 'WF_ABBA') .ne. 0 ) then
+   if ( index(dum(2), ' 6.5') .ne. 0) then
 
-   !  read(iunit,*,end=110) qlon(ic),qlat(ic),satzen,pix_size,t4,t11 &
-                      !,qarea(ic),temp,qfrpw(ic),ivegc,fire_flag
-   !     if (ivegc.ne.'**') then
-   !         read(ivegc,"(I2)") iveg
-   !     else
-!             iveg=22
-   !     endif
-  ! else ! old version
+    read(iunit,*,end=110) qlon(ic),qlat(ic),satzen,pix_size,t4,t11 &
+                      ,qarea(ic),temp,qfrpw(ic),ivegc,fire_flag
+       if (ivegc.ne.'**') then
+           read(ivegc,"(I2)") iveg
+       else
+            iveg=22
+       endif
+  else ! old version
 
      read(iunit,*,end=110)qlon(ic),qlat(ic),t4,t11,qarea(ic),temp,ivegc,fire_flag
         if (ivegc.ne.'**') then
@@ -587,14 +587,14 @@ do i=1,n
         else
              iveg=22
         endif
-   !endif
+  endif
 
 ! else
-! else
+  else
 
-!   print*,'=> No WF_ABBA fire data found in data file'
+    print*,'=> No WF_ABBA fire data found in data file'
 
-! endif
+  endif
 
 ! print*,'qlon qlat=',qlon(ic),qlat(ic),qarea(ic),qfrpw(ic)
 ! size of fire 
