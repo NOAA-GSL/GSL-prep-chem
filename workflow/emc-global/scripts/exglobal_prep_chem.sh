@@ -96,8 +96,8 @@ cd MODIS
 
 set +x # This region is too verbose for "set -x"
 for path in \
-    "$BBEM_MODIS_DIR_YESTERDAY/MODIS_C6_Global_MCD14DL_NRT_$jul_today"* \
-    "$BBEM_MODIS_DIR_TODAY/MODIS_C6_Global_MCD14DL_NRT_$jul_yesterday"*
+    "$BBEM_MODIS_DIR_YESTERDAY/MODIS_C6_Global_MCD14DL_NRT_$jul_yesterday"* \
+    "$BBEM_MODIS_DIR_TODAY/MODIS_C6_Global_MCD14DL_NRT_$jul_today"*
 do
     if [[ -s "$path" ]] ; then
         ln -s "$path" .
