@@ -8,7 +8,7 @@
 module fire_properties
 
 !---------------------------------------------------------------------------
-integer, parameter :: ntfocos=200000 ! max number of fires per day
+integer, parameter :: ntfocos=2000000 ! max number of fires per day
 
 integer, parameter ::  nprop = 12
 

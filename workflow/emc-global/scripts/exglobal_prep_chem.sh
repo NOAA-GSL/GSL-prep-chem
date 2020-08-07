@@ -94,15 +94,21 @@ gbbepx_list=${gbbepx_list:-"GBBEPx.emis_BC GBBEPx.emis_OC GBBEPx.emis_SO2 GBBEPx
 
 cd MODIS
 
-set +x # This region is too verbose for "set -x"
+sHeader_modis="latitude,longitude,brightness,scan,track,acq_date,acq_time,satellite,confidence,version,bright_t31,frp,daynight"
+set -x # This region is too verbose for "set -x"
 for path in \
     "$BBEM_MODIS_DIR_YESTERDAY/MODIS_C6_Global_MCD14DL_NRT_$jul_yesterday"* \
     "$BBEM_MODIS_DIR_TODAY/MODIS_C6_Global_MCD14DL_NRT_$jul_today"*
 do
     if [[ -s "$path" ]] ; then
-        ln -s "$path" .
-        count_modis=$(( count_modis+1 ))
-        echo "WILL LINK: $path"
+        sHeader=`head -1 $path`
+        if [[ $sHeader_modis == $sHeader ]]; then
+            ln -s "$path" .
+            count_modis=$(( count_modis+1 ))
+            echo "WILL LINK: $path"
+        else
+            echo "Format is wrong and will NOT link: $path"
+        fi
     else
         echo "EMPTY: $path"
     fi
@@ -112,17 +118,23 @@ set -x
 
 cd ../WFABBA
 
-set +x # This region is too verbose for "set -x"
+sHeader_wfabba="Longitude  Latitude  Satzen(deg)  Pix Size(km2)  T4(K)  T11(K)  Fire Size(km2)  Temp(K)  FRP(MW)  Ecosystem  Fire Flag"
+set -x # This region is too verbose for "set -x"
 for path in \
     "$BBEM_WFABBA_DIR_YESTERDAY/f$jul_yesterday"* \
     "$BBEM_WFABBA_DIR_TODAY/f$jul_today"*
 do
     if [[ -s "$path" ]] ; then
-        # ln -s "$path" .
-        count_wfabba=$(( count_wfabba+1 ))
-        # echo "WILL LINK: $path"
-        echo "WILL COPY: $path"
-        sed -e 's/\*\{5\}/  -9./' $path > ./$(basename $path)
+        sHeader=`grep "Longitude" $path`
+        if [[ $sHeader_wfabba == $sHeader ]]; then
+            # ln -s "$path" .
+            count_wfabba=$(( count_wfabba+1 ))
+            # echo "WILL LINK: $path"
+            echo "WILL COPY: $path"
+            sed -e 's/\*\{5\}/  -9./' $path > ./$(basename $path)
+        else
+            echo "Format is wrong and will NOT link: $path"
+        fi
     else
         echo "EMPTY: $path"
     fi
@@ -207,11 +219,14 @@ if ( cat prep_chem_sources.inp | grep % ) ; then
 fi
 
 #
-$PREP_CHEM_SOURCES_EXE
+if [[ "$use_gbbepx" == NO ]] ; then
+    $PREP_CHEM_SOURCES_EXE
+fi
 #
 
 if [[ "$use_gbbepx" == YES ]] ; then
-    inout_list=${inout_list:-"BBURN3-bb,ebu_pm_10 SO4-bb,ebu_sulf plume,plumestuff GBBEPx.emis_BC,ebu_bc GBBEPx.emis_OC,ebu_oc GBBEPx.emis_SO2,ebu_so2 GBBEPx.emis_PM2.5,ebu_pm_25 GBBEPx.FRP,plumefrp"}
+ #   inout_list=${inout_list:-"BBURN3-bb,ebu_pm_10 SO4-bb,ebu_sulf plume,plumestuff GBBEPx.emis_BC,ebu_bc GBBEPx.emis_OC,ebu_oc GBBEPx.emis_SO2,ebu_so2 GBBEPx.emis_PM2.5,ebu_pm_25 GBBEPx.FRP,plumefrp"}
+    inout_list=${inout_list:-"GBBEPx.emis_BC,ebu_bc GBBEPx.emis_OC,ebu_oc GBBEPx.emis_SO2,ebu_so2 GBBEPx.emis_PM2.5,ebu_pm_25 GBBEPx.FRP,plumefrp"}
 else
     inout_list=${inoout_list:-"plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"}
     #inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
@@ -220,6 +235,10 @@ fi
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
     for itile in 1 2 3 4 5 6 ; do
         tiledir=tile$itile
+        if [[ ! -d "$tiledir" ]] ; then
+            echo "make directory $tiledir" 1>&2
+            mkdir -p "$tiledir"
+        fi
         pushd $tiledir
 
         set +x # A line-by-line log is too verbose here:
