@@ -12,8 +12,7 @@ exec ./mkncgbbepx.exe <<EOF
    nlon = 96
    nlat = 96
    outfile     = "FIRE_GBBEPx_data.tile1.nc"
-   pathlon     = "/scratch1/BMC/gsd-fv3-dev/Haiqin.Li/Develop/emi_C96/lon/lon_tile1.dat"
-   pathlat     = "/scratch1/BMC/gsd-fv3-dev/Haiqin.Li/Develop/emi_C96/lat/lat_tile1.dat"
+   pathoro     = "/scratch1/NCEPDEV/global/glopara/fix/fix_fv3/C96/C96_oro_data.tile1.nc"
    pathebc     = "/scratch1/BMC/gsd-fv3-dev/lzhang/GBBEPx/C96/20200201/GBBEPx.bc.20200201.FV3.C96Grid.tile1.bin"
    patheoc     = "/scratch1/BMC/gsd-fv3-dev/lzhang/GBBEPx/C96/20200201/GBBEPx.oc.20200201.FV3.C96Grid.tile1.bin"
    pathepm25   = "/scratch1/BMC/gsd-fv3-dev/lzhang/GBBEPx/C96/20200201/GBBEPx.pm25.20200201.FV3.C96Grid.tile1.bin"

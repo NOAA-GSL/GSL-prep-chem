@@ -13,6 +13,65 @@ contains
     endif
   end subroutine check
 
+  subroutine readoro(file,expected_nlat,expected_nlon,lat,lon)
+    use netcdf
+    implicit none
+    real, dimension(:), pointer :: lat, lon
+    integer, intent(in) :: expected_nlat, expected_nlon
+    character(len=*), intent(in) :: file
+
+    integer nlat,nlon, latid,lonid
+    integer ncid, ndims_lat, ndims_lon
+    integer dims_lat(10), dims_lon(10)
+
+    ! Initialize local variables with gibberish:
+    dims_lat=-99
+    dims_lon=-99
+    ncid=-99
+    ndims_lat=-99
+    ndims_lon=-99
+    latid=-99
+    lonid=-99
+    nlat=-99
+    nlon=-99
+    
+    call check(file//': open for read',nf90_open(file,NF90_NOWRITE,ncid))
+    call check(file//': inquire lat variable id',nf90_inq_varid(ncid,'lat',latid))
+    call check(file//': inquire lon variable id',nf90_inq_varid(ncid,'lon',lonid))
+
+    call check(file//': inquire lat variable info', &
+               nf90_inquire_variable(ncid,latid,ndims=ndims_lat,dimids=dims_lat))
+    if(ndims_lat/=1) then
+      call abort(file//': wrong number of dimensions for lat variable (expected 1)')
+    endif
+    call check(file//': inquire lat dimension length',nf90_inquire_dimension(ncid=ncid,dimid=dims_lat(1),len=nlat))
+    if(nlat /= expected_nlat) then
+19    format('nlat mismatch: expected ',I0,' but file has ',I0)
+      write(0,19) expected_nlat,nlat
+      call abort(file//': nlat mismatch')
+    endif
+
+    call check(file//': inquire lon variable info', &
+               nf90_inquire_variable(ncid,lonid,ndims=ndims_lon,dimids=dims_lon))
+    if(ndims_lat/=1) then
+      call abort(file//': wrong number of dimensions for lon variable (expected 1)')
+    endif
+    call check(file//': inquire lon dimension length', &
+         nf90_inquire_dimension(ncid=ncid,dimid=dims_lon(1),len=nlon))
+    if(nlon /= expected_nlon) then
+99    format('nlon mismatch: expected ',I0,' but file has ',I0)
+      write(0,99) expected_nlon,nlon
+      call abort(file//': nlon mismatch')
+    endif
+
+    allocate(lat(nlat))
+    call check(file//': read lon',nf90_get_var(ncid,latid,lat))
+    allocate(lon(nlon))
+    call check(file//': read lat',nf90_get_var(ncid,lonid,lon))
+
+    call check(file//': close NetCDF input file',nf90_close(ncid))
+  end subroutine readoro
+
   function read1d(file,n)
     implicit none
     real, dimension(:), pointer :: read1d
@@ -66,8 +125,7 @@ contains
     write(0,'(A)') '      nlat=96'
     write(0,'(A)') '      nlon=96'
     write(0,'(A)') '      outfile="/path/to/FIRE_GBBEPx_data.tile1.nc"'
-    write(0,'(A)') '      pathlat="/path/to/lat_tile1.dat"'
-    write(0,'(A)') '      pathlon="/path/to/lon_tile1.dat"'
+    write(0,'(A)') '      pathoro="/path/to/C96_oro_data.tile1.nc"'
     write(0,'(A)') '      ! These five are optional:'
     write(0,'(A)') '      pathebc="/path/to/GBBEPx.bc.20200831.FV3.C96Grid.tile1.bin"'
     write(0,'(A)') '      pathepm25="/path/to/GBBEPx.pm25.20200831.FV3.C96Grid.tile1.bin"'
@@ -86,8 +144,7 @@ end module util
 program prog_mkncgbbepx
   use util
   implicit none
-  character(len=500) :: pathlon, pathlat, pathebc, patheoc, pathepm25, &
-       patheso2, patheplume, outfile
+  character(len=500) :: pathebc, patheoc, pathepm25, patheso2, patheplume, outfile, pathoro
   character(len=:), allocatable :: toutfile
   character(len=2000) :: title
   character(len=10) :: date
@@ -107,8 +164,7 @@ program prog_mkncgbbepx
   tile=-1
   nlat=-1
   nlon=-1
-  pathlon='*'
-  pathlat='*'
+  pathoro='*'
   pathebc='*'
   patheoc='*'
   pathepm25='*'
@@ -117,8 +173,7 @@ program prog_mkncgbbepx
   outfile='*'
 
   namelist /mkncgbbepx/ title, tile, date, nlon, nlat, outfile, &
-       pathlon, pathlat, pathebc, patheoc, pathepm25, patheso2, &
-       patheplume
+       pathoro, pathebc, patheoc, pathepm25, patheso2, patheplume
 
   read(nml=mkncgbbepx,unit=5)
 
@@ -134,11 +189,10 @@ program prog_mkncgbbepx
 
   if(nlat<1) call usage("nlat must be > 1")
   if(nlon<1) call usage("nlon must be > 1")
-  if(pathlon=='*') call usage("You must specify pathlon")
-  if(pathlat=='*') call usage("You must specify pathlat")
+  if(pathoro=='*') call usage("You must specify pathoro")
 
-  lat=>read1d(trim(pathlat),nlat)
-  lon=>read1d(trim(pathlon),nlon)
+  nullify(lat,lon)
+  call readoro(trim(pathoro),nlat,nlon,lat,lon)
 
   if(pathebc/='*')   ebc=>read2d(trim(pathebc),nlat,nlon)
   if(patheoc/='*')   eoc=>read2d(trim(patheoc),nlat,nlon)
