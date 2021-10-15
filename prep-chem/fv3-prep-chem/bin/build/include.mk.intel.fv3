@@ -61,8 +61,8 @@ NETCDF_LIBS=-L$(NETCDF)/lib -lnetcdff -lnetcdf
 #HDF5_INC=-I$(HDF5)/include
 #HDF5_LIB=-L$(HDF5)/lib -lhdf5hl_fortran -lhdf5_fortran -lhdf5_hl -lhdf5
 
-HDF5_INC=-I$(HDF5)/include
-HDF5_LIB=-L$(HDF5)/lib -lhdf5hl_fortran -lhdf5_fortran -lhdf5_hl -lhdf5 -L$(SZIP)/lib -lz
+HDF5_INC=-I$(HDF5_ROOT)/include
+HDF5_LIB=-L$(HDF5_ROOT)/lib -lhdf5hl_fortran -lhdf5_fortran -lhdf5_hl -lhdf5 -L$(SZIP)/lib -lz
 	 
 # Machine-dependent options.
 
