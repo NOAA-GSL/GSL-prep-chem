@@ -135,10 +135,10 @@ for day in $gbbepx_days; do
         export local_name
         for itile in 1 2 3 4 5 6 ; do
             export tiledir=tile$itile
-    	    	export GTtile=GT$itile
+            export GTtile=GT$itile
             export expect_gbbepx=$(( expect_gbbepx + 1 ))
             infile=$(env envsubst <<< $gbbepx_pattern)
-	        	infile=$(ls ${infile}*.bin)
+            infile=$(ls ${infile}*.bin)
             if [[ -s "$infile" ]] ; then
                 count_gbbepx=$(( count_gbbepx + 1 ))
             fi
@@ -203,7 +203,7 @@ fi
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
     for itile in 1 2 3 4 5 6 ; do
         tiledir=tile$itile
-		    GTtile=GT$itile
+        GTtile=GT$itile
         if [[ ! -d "$tiledir" ]] ; then
             echo "make directory $tiledir" 1>&2
             mkdir -p "$tiledir"
@@ -230,7 +230,7 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
                     fi
                     export local_name
                     infile=$(env envsubst <<< $gbbepx_pattern)
-				          	infile=$(ls ${infile}*.bin)
+                    infile=$(ls ${infile}*.bin)
                 else
                     infile="${CASE}-T-${emiss_date}0000-${local_name}.bin"
                 fi
