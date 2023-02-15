@@ -79,18 +79,15 @@ echo "yr: $SYEAR mm: $SMONTH dd: $SDAY hh: $SHOUR"
 FIX_GRID_SPEC=$FIXchem/grid-spec/${CASE}/${CASE}_grid_spec
 
 mkdir MODIS
-#mkdir WFABBA
 
 jul_today=$( date -d "$SYEAR-$SMONTH-$SDAY 12:00:00 +0000" +%Y%j )
 jul_yesterday=$( date -d "$SYEAR-$SMONTH-$SDAY 12:00:00 +0000 + -1 day" +%Y%j )
 
 count_modis=0
-#count_wfabba=0
 count_gbbepx=0
 expect_gbbepx=0
 use_gbbepx=NO
 
-#gbbepx_list=${gbbepx_list:-"GBBEPx.emis_BC GBBEPx.emis_OC GBBEPx.emis_SO2 GBBEPx.emis_PM2.5 GBBEPx.FRP"}
 gbbepx_list=${gbbepx_list:-"GBBEPxemis-BC GBBEPxemis-OC GBBEPxemis-SO2 GBBEPxemis-PM25 GBBEPxFRP-MeanFRP"}
 
 cd MODIS
@@ -117,33 +114,6 @@ done
 echo "Found $count_modis MODIS fire data files."
 set -x
 
-#wfabba is discontinued
-#cd ../WFABBA
-
-#sHeader_wfabba="Longitude  Latitude  Satzen(deg)  Pix Size(km2)  T4(K)  T11(K)  Fire Size(km2)  Temp(K)  FRP(MW)  Ecosystem  Fire Flag"
-#set -x # This region is too verbose for "set -x"
-#for path in \
-#    "$BBEM_WFABBA_DIR_YESTERDAY/f$jul_yesterday"* \
-#    "$BBEM_WFABBA_DIR_TODAY/f$jul_today"*
-#do
-#    if [[ -s "$path" ]] ; then
-#        sHeader=`grep "Longitude" $path`
-#        if [[ $sHeader_wfabba == $sHeader ]]; then
-#            # ln -s "$path" .
-#            count_wfabba=$(( count_wfabba+1 ))
-#            # echo "WILL LINK: $path"
-#            echo "WILL COPY: $path"
-#            sed -e 's/\*\{5\}/  -9./' $path > ./$(basename $path)
-#        else
-#            echo "Format is wrong and will NOT link: $path"
-#        fi
-#    else
-#        echo "EMPTY: $path"
-#    fi
-#done
-#echo "Found $count_wfabba wf_abba data files."
-#set -x
-
 cd ..
 
 # Any variables have to be exported to the environment before substitution
@@ -154,7 +124,6 @@ else
     export GBBEPX_DATA_DIR=$GBBEPX_DATA_DIR_TODAY    
     export gbbepx_days=${gbbepx_days:-'$PDYm1'}
 fi
-#gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}.003.${day}.FV3.${CASE}Grid.${tiledir}.bin'}
 gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}-${CASE}${GTtile}_v4r0_blend_s${day}'}
 gbbepx_days=$(env envsubst <<< $gbbepx_days)
 for day in $gbbepx_days; do
@@ -197,11 +166,6 @@ else
     use_gbbepx=YES
 fi
 
-#if (( count_wfabba==0 )) ; then
-#    echo "WARNING: NO WF_ABBA DATA FOUND!" 1>&2
-#fi
-
-#if (( count_wfabba==0 && count_modis==0 && count_gbbepx!=expect_gbbepx )) ; then
 if (( count_modis==0 && count_gbbepx!=expect_gbbepx )) ; then
     echo "WARNING: NO REAL-TIME DATA FOUND!  RESORTING TO STATIC DATA!" 1>&2
 fi
@@ -231,17 +195,15 @@ fi
 #
 
 if [[ "$use_gbbepx" == YES ]] ; then
- #   inout_list=${inout_list:-"BBURN3-bb,ebu_pm_10 SO4-bb,ebu_sulf plume,plumestuff GBBEPx.emis_BC,ebu_bc GBBEPx.emis_OC,ebu_oc GBBEPx.emis_SO2,ebu_so2 GBBEPx.emis_PM2.5,ebu_pm_25 GBBEPx.FRP,plumefrp"}
- #   inout_list=${inout_list:-"GBBEPx.emis_BC,ebu_bc GBBEPx.emis_OC,ebu_oc GBBEPx.emis_SO2,ebu_so2 GBBEPx.emis_PM2.5,ebu_pm_25 GBBEPx.FRP,plumefrp"}
     inout_list=${inout_list:-"GBBEPxemis-BC,ebu_bc GBBEPxemis-OC,ebu_oc GBBEPxemis-SO2,ebu_so2 GBBEPxemis-PM25,ebu_pm_25 GBBEPxFRP-MeanFRP,plumefrp"}
 else
     inout_list=${inoout_list:-"plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf"}
-    #inout_list="plume,plumestuff OC-bb,ebu_oc BC-bb,ebu_bc BBURN2-bb,ebu_pm_25 BBURN3-bb,ebu_pm_10 SO2-bb,ebu_so2 SO4-bb,ebu_sulf ALD-bb,ebu_ald ASH-bb,ebu_ash.dat CO-bb,ebu_co CSL-bb,ebu_csl DMS-bb,ebu_dms ETH-bb,ebu_eth HC3-bb,ebu_hc3 HC5-bb,ebu_hc5 HC8-bb,ebu_hc8 HCHO-bb,ebu_hcho ISO-bb,ebu_iso KET-bb,ebu_ket NH3-bb,ebu_nh3 NO2-bb,ebu_no2 NO-bb,ebu_no OLI-bb,ebu_oli OLT-bb,ebu_olt ORA2-bb,ebu_ora2 TOL-bb,ebu_tol XYL-bb,ebu_xyl"
 fi
 
 if [[ "${SENDCOM:-YES}" == YES ]] ; then
     for itile in 1 2 3 4 5 6 ; do
         tiledir=tile$itile
+	GTtile=GT$itile
         if [[ ! -d "$tiledir" ]] ; then
             echo "make directory $tiledir" 1>&2
             mkdir -p "$tiledir"
