@@ -48,7 +48,7 @@
 # The FIXchem:
 #  Gyre/Surge/Venus: /gpfs/dell2/emc/obsproc/noscrub/Samuel.Trahan/prep_chem/FIXchem/
 
-set -xue
+set -x
 
 if [[ ! -d "$COMOUTchem" ]] ; then
     mkdir -p "$COMOUTchem"
