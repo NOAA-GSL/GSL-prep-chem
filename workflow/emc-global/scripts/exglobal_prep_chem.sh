@@ -124,7 +124,7 @@ else
     export GBBEPX_DATA_DIR=$GBBEPX_DATA_DIR_TODAY    
     export gbbepx_days=${gbbepx_days:-'$PDYm1'}
 fi
-gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}-${CASE}${GTtile}_v4r0_blend_s${day}'}
+gbbepx_pattern=${gbbepx_pattern:-'$GBBEPX_DATA_DIR/${local_name}-${CASE}${GTtile}_v5r0_blend_s${day}'}
 gbbepx_days=$(env envsubst <<< $gbbepx_days)
 for day in $gbbepx_days; do
     set -x  # This region is too verbose for "set -x"
