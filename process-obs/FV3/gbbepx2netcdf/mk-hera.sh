@@ -2,7 +2,7 @@
 
 set -ue
 module purge
-module load gnu intel/2023.2.0 netcdf szip hdf5
+module load gnu intel/2023.2.0 netcdf/4.7.0 szip hdf5
 module list
 set -x
 
