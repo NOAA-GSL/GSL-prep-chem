@@ -170,7 +170,7 @@ if (( count_modis==0 && count_gbbepx!=expect_gbbepx )) ; then
     echo "WARNING: NO REAL-TIME DATA FOUND!  RESORTING TO STATIC DATA!" 1>&2
 fi
 
-cp -fp "$PARMchem/prep_chem_sources.inp.IN" .
+cp -f "$PARMchem/prep_chem_sources.inp.IN" .
 cat prep_chem_sources.inp.IN | sed \
     "s:%HH%:$SHOUR:g                                             ;
      s:%DD%:$SDAY:g                                              ;
@@ -255,7 +255,7 @@ if [[ "${SENDCOM:-YES}" == YES ]] ; then
             fi
             rm -f "$outfile"
             echo "copy $infile => $tempfile" 1>&2
-            cp -fp "$infile" "$tempfile"
+            cp -f "$infile" "$tempfile"
             echo "rename $tempbase => $outbase in $outdir" 1>&2
             mv -T -f "$tempfile" "$outfile"
         done
